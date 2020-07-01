@@ -23,8 +23,8 @@ def items(request):
                    "id": item.id,
                    "title": item.title,
                    "description": item.description,
-                   "create_dt": item.create_dt,
-                   "close_dt": item.close_dt,
+                   "create_dt": int(time.mktime(item.create_dt.timetuple())),
+                   "close_dt": int(time.mktime(item.close_dt.timetuple())),
                    "start_bid": item.start_bid,
                    "price": item.price,
                    } for item in qs]
@@ -35,7 +35,6 @@ def items(request):
 
 def add_item(request):
     data = json.loads(request.body.decode('utf-8'))
-    print(data)
     data['close_dt'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(1347517370))
     new_item = Item.objects.create(**data)
 
