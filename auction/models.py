@@ -18,7 +18,7 @@ class Item(models.Model):
 
 # Bids
 class Bid(models.Model):
-    username = models.CharField(max_length=255)
+    user_name = models.CharField(max_length=255)
     bid_dt = models.DateTimeField(null=False, default=timezone.now)
     item_id = models.ForeignKey(Item, models.CASCADE, null=False, verbose_name='Item title')
-    bid_value = models.DecimalField(default=0.00, decimal_places=2, max_digits=20, verbose_name='Sum, $')
+    price = models.DecimalField(default=0.00, decimal_places=2, max_digits=20, verbose_name='Sum, $')

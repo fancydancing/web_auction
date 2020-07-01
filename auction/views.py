@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 import json
-from .models import Item
+from .models import Item, Bid
 import time
 
 def show_items(request):
@@ -83,8 +83,7 @@ def item_info(request, pk):
     else:
         return HttpResponse("Item is undefined")
     if request.method == 'PUT':
-        if request.body:
-            data = json.loads(request.body.decode('utf-8'))
+        data = json.loads(request.body.decode('utf-8'))
         return item_edit(data, item)
     elif request.method == 'DELETE':
         return item_delete(item)
@@ -92,6 +91,7 @@ def item_info(request, pk):
         return item_read(item)
 
 
+# Logging in
 def sign_in(request):
     login_pass = {'admin': 'admin',
                   'user': 'user',
@@ -110,3 +110,33 @@ def sign_in(request):
 
     result = {'result': res, 'login': username, 'role': role}
     return HttpResponse(json.dumps(result), content_type="text/json")
+
+# List of bids for an item
+def get_bids(pk):
+    bids_qs = Bid.objects.filter(item_id=pk).order_by('-bid_dt')
+
+    bids_list = [{
+        "id": bid.id,
+        "bid_dt": to_epoch(bid.bid_dt),
+        "bid_value": bid.bid_value,
+        "user_name": bid.user_name
+    } for bid in bids_qs]
+
+    bids_json = json.dumps(bids_list, cls=DjangoJSONEncoder)
+    return HttpResponse(bids_json, content_type="text/json")
+
+def set_bid(data, pk):
+    item = get_object_or_404(Item, pk=pk)
+    data['item_id'] = item
+    new_bid = Bid.objects.create(**data)
+    context = {"newID": new_bid.id}
+    return HttpResponse(json.dumps(context), content_type="text/json")
+
+
+# Reading and setting bids for an item
+def item_bids(request, pk):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        return set_bid(data, pk)
+    elif request.method == 'GET':
+        return get_bids(pk)
