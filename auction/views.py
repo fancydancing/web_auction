@@ -5,12 +5,14 @@ import json
 from .models import Item
 import time
 
-def index(request):
-    return HttpResponse("Hello, world. You're at the auction index.")
-
 def show_items(request):
     return render(request, 'items.html')
 
+def to_epoch(value):
+    return int(time.mktime(value.timetuple()))
+
+def from_epoch(value):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(value))
 
 # Create an item or get a list of items
 def items(request):
@@ -18,15 +20,14 @@ def items(request):
         return add_item(request)
     else:
         page = request.POST.get('page')
-        print(page)
         qs = Item.objects.order_by('-create_dt')
 
         items_list = [{
                    "id": item.id,
                    "title": item.title,
                    "description": item.description,
-                   "create_dt": int(time.mktime(item.create_dt.timetuple())),
-                   "close_dt": int(time.mktime(item.close_dt.timetuple())),
+                   "create_dt": to_epoch(item.create_dt),
+                   "close_dt": to_epoch(item.close_dt),
                    "start_bid": item.start_bid,
                    "price": item.price,
                    } for item in qs]
@@ -50,7 +51,7 @@ def item_edit(data, item):
     item.title = data.get('title') or item.title
     item.description = data.get('description') or item.description
     item.price = data.get('price') or item.price
-    item.close_dt = data.get('close_dt') or item.close_dt
+    item.close_dt = from_epoch(data.get('close_dt')) or item.close_dt
     item.save()
 
     result = {"result": True}
@@ -64,11 +65,14 @@ def item_delete(item):
 
 # Item reading
 def item_read(item):
-    print(item)
-    result = json.dumps(item)
-    return HttpResponse(result, content_type="text/json")
-
-
+    result = {'id': item.id,
+              'title': item.title,
+              'description': item.description,
+              'create_dt': to_epoch(item.create_dt),
+              'close_dt': to_epoch(item.close_dt),
+              'price': item.price
+             }
+    return HttpResponse(json.dumps(result, cls=DjangoJSONEncoder), content_type="text/json")
 
 # Updating and reading an item
 def item_info(request, pk):
@@ -77,13 +81,18 @@ def item_info(request, pk):
     else:
         return HttpResponse("Item is undefined")
     if request.method == 'PUT':
-        print('----PUT----')
         if request.body:
             data = json.loads(request.body.decode('utf-8'))
         return item_edit(data, item)
     elif request.method == 'DELETE':
-        print('----DELETE----')
         return item_delete(item)
     elif request.method == 'GET':
-        print('----GET----')
         return item_read(item)
+
+
+def sign_in(request):
+    data = json.loads(request.body.decode('utf-8'))
+    username = data.get('login')
+
+    result = {'result': True, 'login': username, 'role': 'admin' if username == 'admin' else 'user'}
+    return HttpResponse(json.dumps(result), content_type="text/json")
