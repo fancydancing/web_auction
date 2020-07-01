@@ -91,8 +91,19 @@ def item_info(request, pk):
 
 
 def sign_in(request):
+    login_pass = {'admin': 'admin',
+             'user': 'user'}
+
     data = json.loads(request.body.decode('utf-8'))
     username = data.get('login')
+    password = data.get('password')
 
-    result = {'result': True, 'login': username, 'role': 'admin' if username == 'admin' else 'user'}
+    if username not in login_pass.keys() or password != login_pass[username]:
+        res = False
+        role = None
+    else:
+        res = True
+        role = 'admin' if username == 'admin' else 'user'
+
+    result = {'result': res, 'login': username, 'role': role}
     return HttpResponse(json.dumps(result), content_type="text/json")
