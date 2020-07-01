@@ -94,7 +94,8 @@ def item_info(request, pk):
 
 def sign_in(request):
     login_pass = {'admin': 'admin',
-             'user': 'user'}
+                  'user': 'user',
+                  'user2': 'user2'}
 
     data = json.loads(request.body.decode('utf-8'))
     username = data.get('login')
