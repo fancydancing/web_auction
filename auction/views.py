@@ -22,15 +22,17 @@ def items(request):
         page = request.POST.get('page')
         qs = Item.objects.order_by('-create_dt')
 
-        items_list = [{
-                   "id": item.id,
-                   "title": item.title,
-                   "description": item.description,
-                   "create_dt": to_epoch(item.create_dt),
-                   "close_dt": to_epoch(item.close_dt),
-                   "start_bid": item.start_bid,
-                   "price": item.price,
-                   } for item in qs]
+        items_list = {'items': [{
+                        "id": item.id,
+                        "title": item.title,
+                        "description": item.description,
+                        "create_dt": to_epoch(item.create_dt),
+                        "close_dt": to_epoch(item.close_dt),
+                        "start_bid": item.start_bid,
+                        "price": item.price,
+                        } for item in qs],
+                      'total_count': qs.count()
+                     }
 
         items_json = json.dumps(items_list, cls=DjangoJSONEncoder)
 
