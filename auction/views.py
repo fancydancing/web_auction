@@ -14,15 +14,30 @@ def index_view(request):
     """Show start page with items list"""
     return render(request, 'items.html')
 
+
 def items_view(request):
-    """Create an item or get a list of items"""
+    """
+    Operations with items depending on HTTP method.
+
+    POST: add new item
+    GET: return a list of all items
+    """
     if request.method == 'POST':
         return add_item(request)
     else:
         return items_list(request)
 
+
 def items_list(request):
-    """Get a list of items"""
+    """
+    Return a list of items.
+
+    request parameters:
+    [page] - number of page
+    [sort] - 'asc' or 'desc'
+    [order] - field name to sort on
+    [search_string] - string to find in title or description
+    """
     page_number = request.GET['page']
     sort = request.GET['sort']
     order = request.GET['order']
@@ -41,11 +56,13 @@ def items_list(request):
 
     total_count = items_qs.count()
     if page_number:
-        paginator = Paginator(items_qs, 10)  # Show 10 items per page.
-        inverted_page = paginator.num_pages - int(page_number) - 1  # Zero page in Django is the last for the interface
+        paginator = Paginator(items_qs, 10)  # Show 10 items per page
+        # Zero page in Django is the last for the interface
+        inverted_page = paginator.num_pages - int(page_number) - 1
         items_qs = paginator.get_page(inverted_page).object_list
 
-    items_list = {'items':
+    items_list = {
+        'items':
         [{
             "id": item.id,
             "title": item.title,
@@ -59,8 +76,18 @@ def items_list(request):
     items_json = json.dumps(items_list, cls=DjangoJSONEncoder)
     return HttpResponse(items_json, content_type="text/json")
 
+
 def add_item(request):
-    """Create an item"""
+    """
+    Create new item.
+
+    request parameters:
+    [title] - item title
+    [description] - item description
+    [close_dt] - closing time for bids
+    [price] - item start price
+    """
+
     data = json.loads(request.body.decode('utf-8'))
     data['close_dt'] = utils.from_epoch(data['close_dt'])
     new_item = Item.objects.create(**data)
@@ -70,7 +97,16 @@ def add_item(request):
 
 
 def item_edit(data, item):
-    """Edit an item"""
+    """
+    Edit an item.
+
+    parameters in data:
+    [title] - item title
+    [description] - item description
+    [close_dt] - closing time for bids
+    [price] - item start price
+    """
+
     item.title = data.get('title') or item.title
     item.description = data.get('description') or item.description
     item.price = data.get('price') or item.price
@@ -80,25 +116,39 @@ def item_edit(data, item):
     result = {"result": True}
     return HttpResponse(json.dumps(result), content_type="text/json")
 
+
 def item_delete(item):
     """Delete an item"""
     item.delete()
     result = {"result": True}
     return HttpResponse(result, content_type="text/json")
 
+
 def item_read(item):
     """Read an item"""
-    result = {'id': item.id,
-              'title': item.title,
-              'description': item.description,
-              'create_dt': utils.to_epoch(item.create_dt),
-              'close_dt': utils.to_epoch(item.close_dt),
-              'price': item.price
-             }
-    return HttpResponse(json.dumps(result, cls=DjangoJSONEncoder), content_type="text/json")
+    result = {
+        'id': item.id,
+        'title': item.title,
+        'description': item.description,
+        'create_dt': utils.to_epoch(item.create_dt),
+        'close_dt': utils.to_epoch(item.close_dt),
+        'price': item.price
+    }
+
+    return HttpResponse(
+        json.dumps(result, cls=DjangoJSONEncoder),
+        content_type="text/json"
+    )
+
 
 def item_info_view(request, pk):
-    """Upload/read/delete an item"""
+    """
+    Operations with an existing item depending on HTTP method.
+
+    PUT: update item
+    DELETE: delete item
+    GET: read item
+    """
     if pk and pk != 'null':
         item = get_object_or_404(Item, pk=pk)
     else:
@@ -114,8 +164,14 @@ def item_info_view(request, pk):
     elif request.method == 'GET':
         return item_read(item)
 
+
 def sign_in_view(request):
-    """Log in"""
+    """Authorize user and return role and username.
+
+    request parameters:
+    [login]
+    [password]
+    """
     # Users allowed to login
     login_pass = {'admin': 'admin',
                   'user': 'user',
@@ -136,8 +192,9 @@ def sign_in_view(request):
     result = {'result': res, 'login': username, 'role': role}
     return HttpResponse(json.dumps(result), content_type="text/json")
 
+
 def get_bids(pk):
-    """Get bids list"""
+    """Get bids list for an item."""
     bids_qs = Bid.objects.filter(item_id=pk).order_by('-bid_dt')
 
     bids_list = [{
@@ -150,8 +207,15 @@ def get_bids(pk):
     bids_json = json.dumps(bids_list, cls=DjangoJSONEncoder)
     return HttpResponse(bids_json, content_type="text/json")
 
+
 def set_bid(data, pk):
-    """Set a bid for an item"""
+    """
+    Set a bid for an item.
+
+    parameters in data:
+    [price] - bid value
+    [user_name] - user making a bid
+    """
     item = get_object_or_404(Item, pk=pk)
     data['item_id'] = item
     price = data('price')
@@ -159,7 +223,7 @@ def set_bid(data, pk):
 
     # Bid must be higher than the last one
     if price <= item.price:
-        result = {'result': False, 'msg': 'You must make a higher bid'}
+        result = {'result': False, 'msg': 'You have to make a higher bid'}
         return HttpResponse(json.dumps(result), content_type="text/json")
 
     bids_qs = get_bids(pk)
@@ -173,6 +237,7 @@ def set_bid(data, pk):
     new_bid = Bid.objects.create(**data)
     context = {"result": True, 'id': new_bid.id}
     return HttpResponse(json.dumps(context), content_type="text/json")
+
 
 def item_bids_view(request, pk):
     """Read bids/set new bid for an item"""

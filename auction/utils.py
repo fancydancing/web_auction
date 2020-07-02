@@ -1,9 +1,11 @@
 import time
 
-# Convert datetime to integer (epoch time)
+
 def to_epoch(value):
+    """Convert datetime to integer (epoch time)"""
     return int(time.mktime(value.timetuple()))
 
-# Convert integer (epoch time) to a datetime
+
 def from_epoch(value):
+    """Convert integer (epoch time) to a datetime"""
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(value))
