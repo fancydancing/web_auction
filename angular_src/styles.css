@@ -1,0 +1,15 @@
+/* You can add global styles to this file, and also import other style files */
+
+.action_link {
+    color: blue;
+    cursor: pointer;
+}
+
+.centered {
+  position: fixed; /* or absolute */
+  top: 40%;
+  left: 40%;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
