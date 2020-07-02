@@ -50,7 +50,6 @@ def items(request):
                         "description": item.description,
                         "create_dt": to_epoch(item.create_dt),
                         "close_dt": to_epoch(item.close_dt),
-                        "start_bid": item.start_bid,
                         "price": item.price,
                         } for item in items_qs],
                       'total_count': total_count
