@@ -29,17 +29,16 @@ def items(request):
         search_string = request.GET['search_string']
 
         items_qs = Item.objects.all()
-        print(items_qs)
         if search_string != 'null':
             print('---Search: ' + search_string)
             items_qs = items_qs.filter(Q(title__icontains=search_string) |
                                        Q(description__icontains=search_string))
-            print(items_qs)
 
         if sort != 'null':
             sorting_column = sort if order == 'asc' else '-' + sort
             items_qs = items_qs.order_by(sorting_column)
-            print(items_qs)
+
+        total_count = items_qs.count()
         if page_number:
             paginator = Paginator(items_qs, 10)  # Show 10 items per page.
             inverted_page = paginator.num_pages - int(page_number) - 1  # Zero page in Django is the last for the interface
@@ -55,7 +54,7 @@ def items(request):
                         "start_bid": item.start_bid,
                         "price": item.price,
                         } for item in items_qs],
-                      'total_count': items_qs.count()
+                      'total_count': total_count
                      }
 
         items_json = json.dumps(items_list, cls=DjangoJSONEncoder)
