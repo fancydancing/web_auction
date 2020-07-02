@@ -45,7 +45,7 @@ def add_item(request):
     data['close_dt'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(1347517370))
     new_item = Item.objects.create(**data)
 
-    context = {"newID": new_item.id}
+    context = {"id": new_item.id}
     return HttpResponse(json.dumps(context), content_type="text/json")
 
 # Item editing
@@ -128,10 +128,20 @@ def get_bids(pk):
 def set_bid(data, pk):
     item = get_object_or_404(Item, pk=pk)
     data['item_id'] = item
+    price = data('price')
+    user_name = data('user_name')
 
+    if price <= item.price:
+        return HttpResponse('You have to make a higher bid')
+
+    bids_qs = get_bids(pk)
+    highest_bid = bids_qs[0]
+
+    if user_name == highest_bid.user_name:
+        return HttpResponse('Your bid is already the highest')
 
     new_bid = Bid.objects.create(**data)
-    context = {"newID": new_bid.id}
+    context = {"id": new_bid.id}
     return HttpResponse(json.dumps(context), content_type="text/json")
 
 
