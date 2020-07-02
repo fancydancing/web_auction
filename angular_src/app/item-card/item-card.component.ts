@@ -20,7 +20,7 @@ export class ItemCardComponent implements OnInit {
     moment;
     moment_new;
 
-    displayedColumns: string[] = ['user_name', 'price', 'bid_dt'];
+    displayedColumns: string[] = ['user_name', 'price', 'date'];
 
 
     constructor(private rpcService: RpcService, public helpersService: HelpersService) { }

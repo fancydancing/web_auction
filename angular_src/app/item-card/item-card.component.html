@@ -41,7 +41,7 @@
 
     <div>
         <mat-form-field class="example-full-width">
-            <mat-label>Make bid</mat-label>
+            <mat-label>Bid, $</mat-label>
             <input matInput placeholder="$0.00" [(ngModel)]="bid_price">
         </mat-form-field>
 
@@ -49,7 +49,7 @@
             style="margin-left: 10px;"
             (click)="makeBid()" mat-raised-button
             color="primary"
-        >Make bid</button>
+        >Submit bid</button>
     </div>
 
     <h2>Bids:</h2>
@@ -69,7 +69,7 @@
             <td mat-cell *matCellDef="let row">{{ row.user_name }}</td>
         </ng-container>
 
-        <ng-container matColumnDef="bid_dt">
+        <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Created</th>
             <td
                 mat-cell *matCellDef="let row"
