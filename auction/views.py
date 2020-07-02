@@ -30,7 +30,6 @@ def items(request):
 
         items_qs = Item.objects.all()
         if search_string != 'null':
-            print('---Search: ' + search_string)
             items_qs = items_qs.filter(Q(title__icontains=search_string) |
                                        Q(description__icontains=search_string))
 
@@ -63,9 +62,8 @@ def items(request):
 
 # Create an item
 def add_item(request):
-
     data = json.loads(request.body.decode('utf-8'))
-    data['close_dt'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(1347517370))
+    data['close_dt'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data['close_dt']))
     new_item = Item.objects.create(**data)
 
     context = {"id": new_item.id}
