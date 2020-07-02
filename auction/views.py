@@ -218,10 +218,12 @@ def set_bid(data, pk):
     """
     item = get_object_or_404(Item, pk=pk)
     data['item_id'] = item
-    price = data('price')
-    user_name = data('user_name')
+    price = int(data.get('price'))
+    user_name = data.get('user_name')
 
     # Bid must be higher than the last one
+    # print('price: ' + price)
+    # print('item.price: ' + item.price)
     if price <= item.price:
         result = {'result': False, 'msg': 'You have to make a higher bid'}
         return HttpResponse(json.dumps(result), content_type="text/json")

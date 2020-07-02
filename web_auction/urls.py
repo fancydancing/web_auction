@@ -4,6 +4,7 @@ from django.urls import include, path
 from . import settings
 
 urlpatterns = [
+    path('', include('auction.urls')),
     path('api/', include('auction.urls')),
     path('admin/', admin.site.urls),
 ]
