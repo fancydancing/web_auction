@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.paginator import Paginator
+from django.db.models import Q
 import json
 from .models import Item, Bid
 import time
@@ -19,8 +21,30 @@ def items(request):
     if request.method == 'POST':
         return add_item(request)
     else:
-        page = request.POST.get('page')
-        qs = Item.objects.order_by('-create_dt')
+        print(request)
+        # data = json.loads(request.body.decode('utf-8'))
+        page_number = request.GET['page']
+        sort = request.GET['sort']
+        order = request.GET['order']
+        search_string = request.GET['search_string']
+
+        items_qs = Item.objects.all()
+        print(items_qs)
+        if search_string != 'null':
+            print('---Search: ' + search_string)
+            items_qs = items_qs.filter(Q(title__icontains=search_string) |
+                                       Q(description__icontains=search_string))
+            print(items_qs)
+
+        if sort != 'null':
+            sorting_column = sort if order == 'asc' else '-' + sort
+            items_qs = items_qs.order_by(sorting_column)
+            print(items_qs)
+        if page_number:
+            paginator = Paginator(items_qs, 10)  # Show 10 items per page.
+            inverted_page = paginator.num_pages - int(page_number) - 1  # Zero page in Django is the last for the interface
+            items_qs = paginator.get_page(inverted_page).object_list
+            print(items_qs)
 
         items_list = {'items': [{
                         "id": item.id,
@@ -30,8 +54,8 @@ def items(request):
                         "close_dt": to_epoch(item.close_dt),
                         "start_bid": item.start_bid,
                         "price": item.price,
-                        } for item in qs],
-                      'total_count': qs.count()
+                        } for item in items_qs],
+                      'total_count': items_qs.count()
                      }
 
         items_json = json.dumps(items_list, cls=DjangoJSONEncoder)
