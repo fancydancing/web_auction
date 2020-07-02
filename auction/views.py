@@ -118,7 +118,7 @@ def get_bids(pk):
     bids_list = [{
         "id": bid.id,
         "bid_dt": to_epoch(bid.bid_dt),
-        "bid_value": bid.bid_value,
+        "price": bid.price,
         "user_name": bid.user_name
     } for bid in bids_qs]
 
@@ -128,6 +128,8 @@ def get_bids(pk):
 def set_bid(data, pk):
     item = get_object_or_404(Item, pk=pk)
     data['item_id'] = item
+
+
     new_bid = Bid.objects.create(**data)
     context = {"newID": new_bid.id}
     return HttpResponse(json.dumps(context), content_type="text/json")
