@@ -6,7 +6,8 @@ import { HelpersService } from '../helpers/helpers.service';
 
 import { FormControl, Validators } from '@angular/forms';
 import { FormGroup, FormBuilder } from '@angular/forms';
-import {ErrorStateMatcher} from '@angular/material/core';
+import { ErrorStateMatcher } from '@angular/material/core';
+
 
 export class MyErrorStateMatcher implements ErrorStateMatcher {
     isErrorState(control, form): boolean {
@@ -38,9 +39,21 @@ export class ItemCardComponent implements OnInit {
     titleFormControl = new FormControl('', [
         Validators.required
     ]);
+
+    priceFormControl = new FormControl('', [
+        Validators.required,
+        Validators.max(100000)
+    ]);
+
+    bidFormControl = new FormControl('', [
+        Validators.required,
+        Validators.max(100000)
+    ]);
+
     matcher = new MyErrorStateMatcher();
 
     form: FormGroup;
+    formBid: FormGroup;
 
     constructor(
         private rpcService: RpcService,
@@ -54,9 +67,14 @@ export class ItemCardComponent implements OnInit {
         this.form = this.formBuilder.group({
             titleInput: [null, Validators.required],
             descriptionInput: [null, Validators.required],
-            priceInput: [null, Validators.required],
+            priceInput: [Validators.required, Validators.max(100000)],
             closedtInput: [null, Validators.required]
         });
+
+        this.formBid = this.formBuilder.group({
+            bidInput: [Validators.required, Validators.max(100000)],
+        });
+
     }
 
     getItem(): void {
@@ -104,7 +122,6 @@ export class ItemCardComponent implements OnInit {
             return;
         }
         this.item.close_dt = Math.round(this.moment.getTime() / 1000);
-        // this.item.price = parseInt(this.item.price, 10)
         this.rpcService.addItem(this.item)
             .subscribe(
                 () => this.itemCardEvent.emit('new_item_created')
@@ -135,11 +152,21 @@ export class ItemCardComponent implements OnInit {
         });
     }
 
+    myFilter(d: Date): boolean {
+        let dateTime = new Date();
+        return d > dateTime;
+    }
+
     closeItemCard(): void {
         this.itemCardEvent.emit('item_card_closed');
     }
 
     makeBid(): void {
+        if (!this.formBid.valid) {
+            this.validateAllFormFields(this.form);
+            return;
+        }
+
         if (!this.bid_price) {
             this.bid_price = 0;
         }
@@ -155,6 +182,13 @@ export class ItemCardComponent implements OnInit {
         }
 
         this.rpcService.makeBid(this.item_id, this.bid_price)
-            .subscribe(() => this.updateCard());
+            .subscribe(res => this.makeBidHandler(res));
+    }
+
+    makeBidHandler(res) {
+        if (!res.result) {
+            alert(res.msg);
+        }
+        this.updateCard();
     }
 }

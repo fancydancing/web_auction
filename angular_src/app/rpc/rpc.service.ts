@@ -22,11 +22,20 @@ export class RpcService {
     constructor(private http: HttpClient, private cookieService: CookieService) { }
 
     getItems(params): Observable<AucItems> {
-        const ps = new HttpParams()
-            .set('page', params.page ? params.page : 0)
-            .set('sort', params.sort ? params.sort : 'create_dt')
-            .set('order', params.order ? params.order : 'desc')
-            .set('search_string', params.search_string ? params.search_string : null);
+        let ps = {
+            'page': params.page ? params.page : 0,
+            'sort': params.sort ? params.sort : 'create_dt',
+            'order': params.order ? params.order : 'desc',
+            'show_closed': params.show_closed
+        };
+
+        if (params.page_size) {
+            ps['page_size'] = params.page_size;
+        }
+
+        if (params.search_string) {
+            ps['search_string'] = params.search_string;
+        }
 
         return this.http.get<AucItems>(this.itemsUrl, { params: ps })
             .pipe(

@@ -1,8 +1,8 @@
 
 <div
-    style="margin-left: 30px; border: 1px solid; width: 500px; padding-left: 20px;"
+    class="item-card"
 >
-    <div style="position: relative; float: right;">
+    <div class="close-button">
         <button mat-icon-button color="primary" aria-label="Close card"
             (click)="closeItemCard()">
             <mat-icon>close</mat-icon>
@@ -11,7 +11,7 @@
 
     <div
         *ngIf="countdown_init && item.id"
-        style="font-size: 30px; color: red; text-align: center; margin-top: 10px;"
+        class="time-left"
     >
         <span>Time left: </span>
         <countdown [config]="{leftTime: left_time, format: 'HH:mm:ss'}"></countdown>
@@ -38,7 +38,7 @@
 
     <br />
 
-    <mat-form-field class="example-full-width" style="width: 400px;">
+    <mat-form-field class="example-full-width item-desc">
         <mat-label>Description</mat-label>
         <textarea matInput
             cdkTextareaAutosize
@@ -76,10 +76,15 @@
             type="number"
             required
             class="example-right-align"
+            (keypress)="helpersService.numberOnly($event)"
             [(ngModel)]="item.price"
             formControlName="priceInput"
+            [formControl]="priceFormControl"
         >
         <span matPrefix>$&nbsp;</span>
+        <mat-error *ngIf="priceFormControl.hasError('max')">
+            $100000 is max price
+        </mat-error>
     </mat-form-field>
 
     <br />
@@ -93,6 +98,7 @@
             matInput
             [owlDateTime]="dt1"
             [owlDateTimeTrigger]="dt1"
+            [owlDateTimeFilter]="myFilter"
             placeholder="Date Time"
             [(ngModel)]="moment"
             formControlName="closedtInput"
@@ -104,7 +110,7 @@
 
     <button
         *ngIf="edit_mode && item.id"
-        style="margin-bottom: 20px;"
+        class="item-save"
         (click)="updateItem()" mat-raised-button
         color="primary"
         type="submit"
@@ -112,7 +118,7 @@
 
     <button
         *ngIf="edit_mode && !item.id"
-        style="margin-bottom: 20px;"
+        class="item-add-item"
         (click)="addItem()" mat-raised-button
         color="primary"
         type="submit"
@@ -121,30 +127,39 @@
     </form>
 
     <div *ngIf="!edit_mode">
-        <mat-form-field class="example-full-width">
-            <mat-label>Bid, $</mat-label>
-            <input
-                matInput
-                type="number"
-                placeholder="$0.00"
-                [(ngModel)]="bid_price"
-            >
-        </mat-form-field>
+        <form  [formGroup]="formBid">
+            <mat-form-field class="example-full-width">
+                <mat-label>Bid, $</mat-label>
+                <input
+                    matInput
+                    type="number"
+                    (keypress)="helpersService.numberOnly($event)"
+                    placeholder="$0.00"
+                    [(ngModel)]="bid_price"
+                    formControlName="bidInput"
+                    [formControl]="bidFormControl"
+                >
+                <mat-error *ngIf="bidFormControl.hasError('max')">
+                    $100000 is max bid
+                </mat-error>
+            </mat-form-field>
 
-        <button
-            style="margin-left: 10px;"
-            (click)="makeBid()" mat-raised-button
-            color="primary"
-        >Submit bid</button>
+            <button
+                class="item-submit-bid"
+                (click)="makeBid()"
+                mat-raised-button
+                color="primary"
+            >Submit bid</button>
+        </form>
     </div>
 
-    <h2 *ngIf="!edit_mode">Bids:</h2>
+    <h2 *ngIf="!edit_mode" class="mat-h2" style="margin-bottom: 0px;">Recent bids:</h2>
 
     <table
         *ngIf="!edit_mode"
         mat-table [dataSource]="bids" class="example-table"
         mat-elevation-z8
-        style="margin-right: 30px; width: 400px;"
+        class="bids-list"
     >
         <ng-container matColumnDef="price">
             <th mat-header-cell *matHeaderCellDef>Price</th>
@@ -160,7 +175,7 @@
             <th mat-header-cell *matHeaderCellDef>Created</th>
             <td
                 mat-cell *matCellDef="let row"
-            >{{ helpersService.getDateTimeFromEpoch(row.bid_dt) }}</td>
+            >{{ helpersService.getDateTimeFromEpoch(row.bid_dt, 'medium') }}</td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

@@ -7,10 +7,15 @@ export class HelpersService {
 
     constructor(private cookieService: CookieService, public datepipe: DatePipe) { }
 
-    getDateTimeFromEpoch(epoch: number): String {
+    getDateTimeFromEpoch(epoch: number, formating?: string): String {
         let dt = new Date(0);
         dt.setUTCSeconds(epoch);
-        return this.datepipe.transform(dt, 'yyyy-MM-dd HH:mm');
+
+        if (!formating) {
+            formating = 'yyyy-MM-dd HH:mm';
+        }
+
+        return this.datepipe.transform(dt, formating);
     }
 
     getUserName(): string {
@@ -19,5 +24,13 @@ export class HelpersService {
 
     isAdmin(): boolean {
         return this.cookieService.get('auction_role') == 'admin';
+    }
+
+    numberOnly(event): boolean {
+        const charCode = (event.which) ? event.which : event.keyCode;
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            return false;
+        }
+        return true;
     }
 }
