@@ -193,9 +193,9 @@ def sign_in_view(request):
     return HttpResponse(json.dumps(result), content_type="text/json")
 
 
-def get_bids(pk):
+def get_bids(item):
     """Get bids list for an item."""
-    bids_qs = Bid.objects.filter(item_id=pk).order_by('-bid_dt')
+    bids_qs = Bid.objects.filter(item_id=item).order_by('-bid_dt')
 
     bids_list = [{
         "id": bid.id,
@@ -208,17 +208,24 @@ def get_bids(pk):
     return HttpResponse(bids_json, content_type="text/json")
 
 
-def set_bid(data, pk):
+def set_bid(data, item):
     """
     Set a bid for an item.
 
+    [item] - instance of Item
     parameters in data:
     [price] - bid value
     [user_name] - user making a bid
     """
-    item = get_object_or_404(Item, pk=pk)
     data['item_id'] = item
+    if 'price' not in data:
+        result = {'result': False, 'msg': 'Price is required'}
+        return HttpResponse(json.dumps(result), content_type="text/json")
     price = int(data.get('price'))
+
+    if 'user_name' not in data:
+        result = {'result': False, 'msg': 'Username is required'}
+        return HttpResponse(json.dumps(result), content_type="text/json")
     user_name = data.get('user_name')
 
     # Bid must be higher than the last one
@@ -226,28 +233,30 @@ def set_bid(data, pk):
         result = {'result': False, 'msg': 'You have to make a higher bid'}
         return HttpResponse(json.dumps(result), content_type="text/json")
 
-    bids_qs = Bid.objects.filter(item_id=pk).order_by('-bid_dt')
+    bids_qs = Bid.objects.filter(item_id=item).order_by('-bid_dt')
 
+    # User cannot make a bid if his bid is already the highest
     if bids_qs.count() > 0:
         highest_bid = bids_qs[0]
-        # User cannot make a bid if his bid is already the highest
         if user_name == highest_bid.user_name:
             result = {'result': False, 'msg': 'Your bid is already the highest'}
             return HttpResponse(json.dumps(result), content_type="text/json")
 
     new_bid = Bid.objects.create(**data)
-    item.price = new_bid.price
-    item.save()
     context = {"result": True, 'id': new_bid.id}
     return HttpResponse(json.dumps(context), content_type="text/json")
 
 
 def item_bids_view(request, pk):
     """Read bids/set new bid for an item"""
+    item = get_object_or_404(Item, pk=pk)
+    if not(item):
+        result = {'result': False, 'msg': 'Item is undefined'}
+        return HttpResponse(json.dumps(result), content_type="text/json")
     # Set bid
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
-        return set_bid(data, pk)
+        return set_bid(data, item)
     # Get bids list
     elif request.method == 'GET':
-        return get_bids(pk)
+        return get_bids(item)

@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-
+from django.db.models.signals import post_save
 
 class Item(models.Model):
     """Item model."""
@@ -33,3 +33,13 @@ class Bid(models.Model):
     price = models.DecimalField(
         default=0, decimal_places=0, max_digits=20, verbose_name='Sum, $'
     )
+
+
+def post_save_update_item_price(sender, instance, *args, **kwargs):
+    """Updating item price after new bid"""
+    if instance.item_id:
+        item = instance.item_id
+        item.price = instance.price
+        item.save()
+
+post_save.connect(post_save_update_item_price, sender=Bid)
