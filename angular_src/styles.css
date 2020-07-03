@@ -1,0 +1,54 @@
+/* You can add global styles to this file, and also import other style files */
+
+.gallery-title {
+  font-weight: bold;
+}
+
+.gallery-desc {
+  height: 50px; 
+  overflow: hidden; 
+  margin-left: 16px;
+}
+
+.gallery-price {
+  font-size: x-large; 
+  font-weight: bold; 
+  margin-left: 10px;
+}
+
+.responsive {
+  padding: 0 6px;
+  float: left;
+  width: 20%;
+  margin: 10px;
+  height: 200px;
+}
+
+@media only screen and (max-width: 700px) {
+  .responsive {
+    width: 40%;
+    margin: 20px;
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  .responsive {
+    width: 90%;
+    margin: 20px;
+  }
+}
+
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.centered {
+  position: fixed; /* or absolute */
+  top: 40%;
+  left: 40%;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
