@@ -107,6 +107,7 @@
 <div *ngIf="mode == 'add_new_item'">
     <item-card
         [item]="selectedItem"
+        [edit_mode]="true"
         (itemCardEvent)="onItemCardEvent($event)"
     ></item-card>
 </div>
