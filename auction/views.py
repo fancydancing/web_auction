@@ -38,10 +38,10 @@ def items_list(request):
     [order] - field name to sort on
     [search_string] - string to find in title or description
     """
-    page_number = request.GET['page']
-    sort = request.GET['sort']
-    order = request.GET['order']
-    search_string = request.GET['search_string']
+    page_number = request.GET.get('page', 0)
+    sort = request.GET.get('sort', 'create_dt')
+    order = request.GET.get('order', 'asc')
+    search_string = request.GET.get('search_string', 'null')
 
     items_qs = Item.objects.all()
     if search_string != 'null':
@@ -90,6 +90,14 @@ def add_item(request):
 
     data = json.loads(request.body.decode('utf-8'))
     data['close_dt'] = utils.from_epoch(data['close_dt'])
+    if 'title' not in data or \
+        'description' not in data or \
+        'close_dt' not in data or \
+        'price' not in data:
+
+        result = {'result': False, 'msg': 'Not enough parameters'}
+        return HttpResponse(json.dumps(result), content_type="text/json")
+
     new_item = Item.objects.create(**data)
 
     result = {'result': True, 'id': new_item.id}
@@ -107,10 +115,10 @@ def item_edit(data, item):
     [price] - item start price
     """
 
-    item.title = data.get('title') or item.title
-    item.description = data.get('description') or item.description
-    item.price = data.get('price') or item.price
-    item.close_dt = utils.from_epoch(data.get('close_dt')) or item.close_dt
+    item.title = data.get('title', item.title)
+    item.description = data.get('description', item.description)
+    item.price = data.get('price', item.price)
+    item.close_dt = utils.from_epoch(data.get('close_dt'), item.close_dt)
     item.save()
 
     result = {"result": True}
@@ -151,6 +159,8 @@ def item_info_view(request, pk):
     """
     if pk and pk != 'null':
         item = get_object_or_404(Item, pk=pk)
+        if not item:
+            return HttpResponse("Item is undefined")
     else:
         return HttpResponse("Item is undefined")
     # Edit item
@@ -217,7 +227,8 @@ def set_bid(data, item):
     [price] - bid value
     [user_name] - user making a bid
     """
-    data['item_id'] = item
+
+    # Validate parameters
     if 'price' not in data:
         result = {'result': False, 'msg': 'Price is required'}
         return HttpResponse(json.dumps(result), content_type="text/json")
@@ -242,6 +253,7 @@ def set_bid(data, item):
             result = {'result': False, 'msg': 'Your bid is already the highest'}
             return HttpResponse(json.dumps(result), content_type="text/json")
 
+    data['item_id'] = item
     new_bid = Bid.objects.create(**data)
     context = {"result": True, 'id': new_bid.id}
     return HttpResponse(json.dumps(context), content_type="text/json")
