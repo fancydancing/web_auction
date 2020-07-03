@@ -236,6 +236,8 @@ def set_bid(data, pk):
             return HttpResponse(json.dumps(result), content_type="text/json")
 
     new_bid = Bid.objects.create(**data)
+    item.price = new_bid.price
+    item.save()
     context = {"result": True, 'id': new_bid.id}
     return HttpResponse(json.dumps(context), content_type="text/json")
 
