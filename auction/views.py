@@ -44,20 +44,20 @@ def items_list(request):
     page_number = request.GET.get('page', 0)
     sort = request.GET.get('sort', 'create_dt')
     order = request.GET.get('order', 'asc')
-    search_string = request.GET.get('search_string', 'null')
-    show_closed = request.GET.get('search_string', False)
+    search_string = request.GET.get('search_string', None)
+    show_closed = request.GET.get('show_closed', False)
 
     items_qs = Item.objects.all()
-    if search_string != 'null':
+    if search_string:
         items_qs = items_qs.filter(
             Q(title__icontains=search_string) |
             Q(description__icontains=search_string)
         )
 
     if not show_closed:
-        items_qs = items_qs.filter(close_dt__lt=timezone.now)
+        items_qs = items_qs.filter(close_dt__lt=timezone.now())
 
-    if sort != 'null':
+    if sort:
         sorting_column = sort if order == 'asc' else '-' + sort
         items_qs = items_qs.order_by(sorting_column)
 

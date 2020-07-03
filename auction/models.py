@@ -31,7 +31,7 @@ class Bid(models.Model):
         Item, models.CASCADE, null=False, verbose_name='Item title'
     )
     price = models.DecimalField(
-        default=0, decimal_places=0, max_digits=20, verbose_name='Sum, $'
+        default=0, decimal_places=0, max_digits=20, verbose_name=''
     )
 
 
