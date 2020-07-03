@@ -97,12 +97,11 @@ def add_item(request):
 
     data = json.loads(request.body.decode('utf-8'))
     data['close_dt'] = utils.from_epoch(data['close_dt'])
-    if 'title' not in data or \
-        'description' not in data or \
-        'close_dt' not in data or \
-        'price' not in data:
 
-        result = {'result': False, 'msg': 'Not enough parameters'}
+    params = ['title', 'description', 'close_dt', 'price']
+    missing_params = [p for p in params if p not in data]
+    if len(missing_params) > 0:
+        result = {'result': False, 'msg': 'Missing parameters: ' + ', '.join(missing_params)}
         return HttpResponse(json.dumps(result), content_type="text/json")
 
     new_item = Item.objects.create(**data)
