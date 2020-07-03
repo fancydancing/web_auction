@@ -5,9 +5,11 @@ from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.utils import timezone
 
 from . import utils
 from .models import Item, Bid
+
 
 
 def index_view(request):
@@ -37,11 +39,13 @@ def items_list(request):
     [sort] - 'asc' or 'desc'
     [order] - field name to sort on
     [search_string] - string to find in title or description
+    [show_closed] - show closed items or not
     """
     page_number = request.GET.get('page', 0)
     sort = request.GET.get('sort', 'create_dt')
     order = request.GET.get('order', 'asc')
     search_string = request.GET.get('search_string', 'null')
+    show_closed = request.GET.get('search_string', False)
 
     items_qs = Item.objects.all()
     if search_string != 'null':
@@ -49,6 +53,9 @@ def items_list(request):
             Q(title__icontains=search_string) |
             Q(description__icontains=search_string)
         )
+
+    if not show_closed:
+        items_qs = items_qs.filter(close_dt__lt=timezone.now)
 
     if sort != 'null':
         sorting_column = sort if order == 'asc' else '-' + sort
@@ -228,20 +235,24 @@ def set_bid(data, item):
     [user_name] - user making a bid
     """
 
+    if item.close_dt <= timezone.now():
+        result = {'result': False, 'msg': 'Sorry, this lot is already closed.'}
+        return HttpResponse(json.dumps(result), content_type="text/json")
+
     # Validate parameters
     if 'price' not in data:
-        result = {'result': False, 'msg': 'Price is required'}
+        result = {'result': False, 'msg': 'Price is required.'}
         return HttpResponse(json.dumps(result), content_type="text/json")
     price = int(data.get('price'))
 
     if 'user_name' not in data:
-        result = {'result': False, 'msg': 'Username is required'}
+        result = {'result': False, 'msg': 'Username is required.'}
         return HttpResponse(json.dumps(result), content_type="text/json")
     user_name = data.get('user_name')
 
     # Bid must be higher than the last one
     if price <= item.price:
-        result = {'result': False, 'msg': 'You have to make a higher bid'}
+        result = {'result': False, 'msg': 'You have to make a higher bid.'}
         return HttpResponse(json.dumps(result), content_type="text/json")
 
     bids_qs = Bid.objects.filter(item_id=item).order_by('-bid_dt')
@@ -250,7 +261,7 @@ def set_bid(data, item):
     if bids_qs.count() > 0:
         highest_bid = bids_qs[0]
         if user_name == highest_bid.user_name:
-            result = {'result': False, 'msg': 'Your bid is already the highest'}
+            result = {'result': False, 'msg': 'Your bid is already the highest.'}
             return HttpResponse(json.dumps(result), content_type="text/json")
 
     data['item_id'] = item
@@ -263,7 +274,7 @@ def item_bids_view(request, pk):
     """Read bids/set new bid for an item"""
     item = get_object_or_404(Item, pk=pk)
     if not(item):
-        result = {'result': False, 'msg': 'Item is undefined'}
+        result = {'result': False, 'msg': 'Item is undefined.'}
         return HttpResponse(json.dumps(result), content_type="text/json")
     # Set bid
     if request.method == 'POST':
