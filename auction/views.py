@@ -222,19 +222,18 @@ def set_bid(data, pk):
     user_name = data.get('user_name')
 
     # Bid must be higher than the last one
-    # print('price: ' + price)
-    # print('item.price: ' + item.price)
     if price <= item.price:
         result = {'result': False, 'msg': 'You have to make a higher bid'}
         return HttpResponse(json.dumps(result), content_type="text/json")
 
-    bids_qs = get_bids(pk)
-    highest_bid = bids_qs[0]
+    bids_qs = Bid.objects.filter(item_id=pk).order_by('-bid_dt')
 
-    # User cannot make a bid if his bid is already the highest
-    if user_name == highest_bid.user_name:
-        result = {'result': False, 'msg': 'Your bid is already the highest'}
-        return HttpResponse(json.dumps(result), content_type="text/json")
+    if bids_qs.count() > 0:
+        highest_bid = bids_qs[0]
+        # User cannot make a bid if his bid is already the highest
+        if user_name == highest_bid.user_name:
+            result = {'result': False, 'msg': 'Your bid is already the highest'}
+            return HttpResponse(json.dumps(result), content_type="text/json")
 
     new_bid = Bid.objects.create(**data)
     context = {"result": True, 'id': new_bid.id}
