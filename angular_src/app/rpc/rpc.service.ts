@@ -37,7 +37,7 @@ export class RpcService {
     getBids(item_id: Number): Observable<Bid[]> {
         const url = `api/items/${item_id}/bids`
 
-        return this.http.get<Bid[]>(this.itemsUrl)
+        return this.http.get<Bid[]>(url)
             .pipe(
                 catchError(this.handleError<Bid[]>('getBids', []))
             );

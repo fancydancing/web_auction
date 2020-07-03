@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HelpersService } from './helpers/helpers.service';
 
 @Component({
   selector: 'app-root',
@@ -8,9 +9,12 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponent implements OnInit {
     logged: Boolean = false;
 
-    constructor() { }
+    is_admin: boolean = false;
+
+    constructor(public helpersService: HelpersService) { }
 
     ngOnInit() {
+        this.is_admin = this.helpersService.isAdmin();
     }
 
     onSignInEvent(ev: String) {

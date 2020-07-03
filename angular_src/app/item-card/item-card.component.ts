@@ -4,6 +4,17 @@ import { Bid } from '../bid';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
 
+import { FormControl, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder } from '@angular/forms';
+import {ErrorStateMatcher} from '@angular/material/core';
+
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+    isErrorState(control, form): boolean {
+        const isSubmitted = form && form.submitted;
+        return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted));
+    }
+}
+
 
 @Component({
   selector: 'item-card',
@@ -18,15 +29,34 @@ export class ItemCardComponent implements OnInit {
     bids: Bid[] = [];
     bid_price: Number;
     moment;
-    moment_new;
+
+    countdown_init: boolean = false;
+    left_time: number;
 
     displayedColumns: string[] = ['user_name', 'price', 'date'];
 
+    titleFormControl = new FormControl('', [
+        Validators.required
+    ]);
+    matcher = new MyErrorStateMatcher();
 
-    constructor(private rpcService: RpcService, public helpersService: HelpersService) { }
+    form: FormGroup;
+
+    constructor(
+        private rpcService: RpcService,
+        public helpersService: HelpersService,
+        private formBuilder: FormBuilder
+    ) { }
 
     ngOnInit() {
         this.getItem();
+
+        this.form = this.formBuilder.group({
+            titleInput: [null, Validators.required],
+            descriptionInput: [null, Validators.required],
+            priceInput: [null, Validators.required],
+            closedtInput: [null, Validators.required]
+        });
     }
 
     getItem(): void {
@@ -42,6 +72,8 @@ export class ItemCardComponent implements OnInit {
             .subscribe(item => this.initItem(item));
 
         this.getBids();
+
+        this.bid_price = null;
     }
 
     initItem(item) {
@@ -50,6 +82,10 @@ export class ItemCardComponent implements OnInit {
         dt.setUTCSeconds(item.close_dt);
         this.moment = dt;
 
+        let epoch = Math.round(Date.now() / 1000);
+        this.left_time = item.close_dt - epoch;
+        this.left_time = this.left_time > 0 ? this.left_time : 0;
+        this.countdown_init = true;
     }
 
     getBids(): void {
@@ -58,11 +94,17 @@ export class ItemCardComponent implements OnInit {
     }
 
     addItem(): void {
-        if (!this.moment_new) {
+        if (!this.form.valid) {
+            this.validateAllFormFields(this.form);
+            return;
+        }
+
+        if (!this.moment) {
             alert('You have to choose a time for closing the lot.');
             return;
         }
-        this.item.close_dt = Math.round(this.moment_new.getTime() / 1000);
+        this.item.close_dt = Math.round(this.moment.getTime() / 1000);
+        // this.item.price = parseInt(this.item.price, 10)
         this.rpcService.addItem(this.item)
             .subscribe(
                 () => this.itemCardEvent.emit('new_item_created')
@@ -70,11 +112,27 @@ export class ItemCardComponent implements OnInit {
     }
 
     updateItem(): void {
+        if (!this.form.valid) {
+            this.validateAllFormFields(this.form);
+            return;
+        }
+
         this.item.close_dt = Math.round(this.moment.getTime() / 1000);
         this.rpcService.updateItem(this.item)
             .subscribe(
                 () => this.itemCardEvent.emit('item_updated')
             );
+    }
+
+    validateAllFormFields(formGroup: FormGroup) {
+        Object.keys(formGroup.controls).forEach(field => {
+            const control = formGroup.get(field);
+            if (control instanceof FormControl) {
+                control.markAsTouched({ onlySelf: true });
+            } else if (control instanceof FormGroup) {
+                this.validateAllFormFields(control);
+            }
+        });
     }
 
     closeItemCard(): void {

@@ -2,6 +2,10 @@
     <sign-in (signInEvent)="onSignInEvent($event)"></sign-in>
 </div>
 
-<div *ngIf="logged">
+<div *ngIf="logged && is_admin">
     <items-list></items-list>
+</div>
+
+<div *ngIf="logged && !is_admin">
+    <gallery></gallery>
 </div>
