@@ -6,7 +6,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { AucItem, AucItems } from '../item';
+import { AucItem, AucItems, ServerResponse } from '../item';
 import { Bid } from '../bid';
 
 
@@ -69,13 +69,18 @@ export class RpcService {
             );
     }
 
-    makeBid(item_id: Number, bid_price: Number): Observable<{}> {
+    /**
+     * Send new bid to backend
+     * @param item_id Item id
+     * @param bid_price Item bid price in $
+     */
+    makeBid(item_id: number, bid_price: number): Observable<ServerResponse> {
         let user_name = this.cookieService.get('auction_user_name');
 
         const url = `api/items/${item_id}/bids`;
-        return this.http.post(url, {price: bid_price, user_name: user_name})
+        return this.http.post<ServerResponse>(url, {price: bid_price, user_name: user_name})
             .pipe(
-                catchError(this.handleError('makeBid'))
+                catchError(this.handleError<ServerResponse>('makeBid'))
             );
     }
 

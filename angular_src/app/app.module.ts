@@ -1,19 +1,14 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule }    from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { DatePipe } from '@angular/common'
 
-import { AppComponent } from './app.component';
-import { ItemsListComponent } from './items-list/items-list.component';
-import { ItemCardComponent } from './item-card/item-card.component';
-import { SignInComponent } from './sign-in/sign-in.component';
-import { GalleryComponent } from './gallery/gallery.component';
-
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
-
 import { CountdownModule } from 'ngx-countdown';
+import { CookieService } from 'ngx-cookie-service';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -23,7 +18,11 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
 
-import { CookieService } from 'ngx-cookie-service';
+import { AppComponent } from './app.component';
+import { ItemsListComponent } from './items-list/items-list.component';
+import { ItemCardComponent } from './item-card/item-card.component';
+import { SignInComponent } from './sign-in/sign-in.component';
+import { GalleryComponent } from './gallery/gallery.component';
 
 
 @NgModule({
