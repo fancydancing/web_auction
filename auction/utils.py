@@ -1,7 +1,7 @@
 import time
 
 
-def to_epoch(value:datetime):
+def to_epoch(value):
     """Convert datetime to integer (epoch time)"""
     return int(time.mktime(value.timetuple()))
 

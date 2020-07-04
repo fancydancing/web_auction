@@ -18,7 +18,7 @@ SECRET_KEY = '&m_@1$*02yai!#kyk*50dhmd!npnox@_#5d-(d6+-e@mes*)v^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -114,8 +114,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_URL = '/static/'
-STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['static']))
+STATIC_URL = '/angular_dist/'
+STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['..','angular_dist']))
 STATICFILES_DIRS = [
-    os.path.join(PROJECT_ROOT, "static"),
+    os.path.join(PROJECT_ROOT, "..","angular_dist"),
 ]
