@@ -28,6 +28,9 @@ def items_view(request):
             result = {'result': False, 'msg': 'Missing parameters: ' + ', '.join(missing_params)}
             return HttpResponse(json.dumps(result), content_type="text/json")
 
+        if data['price'] <= 0:
+            result = {'result': False, 'msg': 'Price must be greater than 0.'}
+            return HttpResponse(json.dumps(result), content_type="text/json")
         new_id = AuctionItem().add(data)
         result = {'result': True, 'id': new_id}
         return HttpResponse(json.dumps(result), content_type="text/json")
@@ -48,6 +51,9 @@ def item_info_view(request, pk):
     # Edit item
     if request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
+        if 'price' in data and data['price'] <= 0:
+            result = {'result': False, 'msg': 'Price must be greater than 0.'}
+            return HttpResponse(json.dumps(result), content_type="text/json")
         result = AuctionItem(pk).edit(data)
         return HttpResponse(json.dumps({"result": result}), content_type="text/json")
     # Delete item
@@ -75,7 +81,7 @@ def sign_in_view(request):
     return HttpResponse(json.dumps(result), content_type="text/json")
 
 
-def item_bids_view(request, pk):
+def item_bids_view(request, pk: int):
     """Read bids/set new bid for an item"""
     # Set bid
     if request.method == 'POST':

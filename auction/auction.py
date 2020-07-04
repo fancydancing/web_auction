@@ -16,30 +16,30 @@ class AuctionItem():
             if not self.item:
                 raise Exception('Item not found.')
 
-    def add(self, data):
+    def add(self, data:dict):
         """
         Create new item.
 
         request parameters:
-        [title] - item title
-        [description] - item description
-        [close_dt] - closing time for bids
-        [price] - item start price
+        [title:str] - item title
+        [description:str] - item description
+        [close_dt:int] - closing time for bids
+        [price:int] - item start price
         """
         data['close_dt'] = utils.from_epoch(data['close_dt'])
 
         new_item = Item.objects.create(**data)
         return new_item.id
 
-    def edit(self, data):
+    def edit(self, data:dict):
         """
         Edit an item.
 
         parameters in data:
-        [title] - item title
-        [description] - item description
-        [close_dt] - closing time for bids
-        [price] - item start price
+        [title:str] - item title
+        [description:str] - item description
+        [close_dt:int] - closing time for bids
+        [price:str] - item start price
         """
 
         self.item.title = data.get('title', self.item.title)
@@ -85,14 +85,14 @@ class AuctionItem():
         return bids_list
 
 
-    def set_bid(self, data):
+    def set_bid(self, data:dict):
         """
         Set a bid for an item.
 
-        [item] - instance of Item
+        [item:Item] - instance of Item
         parameters in data:
-        [price] - bid value
-        [user_name] - user making a bid
+        [price:int] - bid value
+        [user_name:str] - user making a bid
         """
         price = data.get('price')
         user_name = data.get('user_name')
@@ -127,11 +127,11 @@ class AuctionList():
         Return a list of items.
 
         request parameters:
-        [page] - number of page
-        [sort] - 'asc' or 'desc'
-        [order] - field name to sort on
-        [search_string] - string to find in title or description
-        [show_closed] - show closed items or not
+        [page:int] - number of page
+        [sort:str] - 'asc' or 'desc'
+        [order:str] - field name to sort on
+        [search_string:str] - string to find in title or description
+        [show_closed:bool] - show closed items or not
         """
         page_number = data.get('page', 0)
         sort = data.get('sort', 'create_dt')
