@@ -3,13 +3,15 @@
 <div [style.display]="getListViewDisplay()">
     <button
         *ngIf="is_admin"
-        (click)="onAddNewItem()" mat-raised-button color="primary"
-        style="margin-left: 30px; margin-bottom: 30px;"
+        (click)="onAddNewItem()"
+        mat-raised-button
+        color="primary"
+        class="add-new"
     >Add new item</button>
 
     <br />
 
-    <mat-form-field style="margin-left: 30px">
+    <mat-form-field class="search-field">
         <mat-label>Filter</mat-label>
         <input
             #searchBox id="search-box" matInput
@@ -19,10 +21,14 @@
     </mat-form-field>
 
     <table
-        mat-table [dataSource]="items" class="example-table"
+        mat-table
+        [dataSource]="items"
+        class="example-table items-table"
         mat-elevation-z8
-        matSort matSortActive="create_dt" matSortDisableClear matSortDirection="desc"
-        style="margin-right: 30px; margin-left: 30px; width: 90%;"
+        matSort
+        matSortActive="create_dt"
+        matSortDisableClear
+        matSortDirection="desc"
     >
 
         <ng-container matColumnDef="title">
@@ -51,19 +57,6 @@
             >{{ helpersService.getDateTimeFromEpoch(row.create_dt) }}</td>
         </ng-container>
 
-        <ng-container matColumnDef="bid_now">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let row">
-                <div>
-                    <button style="margin-left: 10px;"
-                    (click)="onSelect(row)" mat-raised-button
-                    color="primary">
-                        Bid now
-                    </button>
-                </div>
-            </td>
-        </ng-container>
-
         <ng-container matColumnDef="operations">
             <th mat-header-cell *matHeaderCellDef> </th>
             <td mat-cell *matCellDef="let row">
@@ -73,9 +66,13 @@
                         <mat-icon>edit</mat-icon>
                     </button>
 
-                    <button mat-icon-button color="primary" aria-label="Delete item"
-                        style="margin-left: 10px;"
-                        (click)="onSelectDelete(row.id)">
+                    <button
+                        mat-icon-button
+                        color="primary"
+                        aria-label="Delete item"
+                        class="delete-button"
+                        (click)="onSelectDelete(row.id)"
+                    >
                         <mat-icon>delete</mat-icon>
                     </button>
                 </div>

@@ -1,19 +1,25 @@
 
-<div
-    style="margin-left: 30px; border: 1px solid; width: 500px; padding-left: 20px;"
->
-    <div style="position: relative; float: right;">
-        <button mat-icon-button color="primary" aria-label="Close card"
-            (click)="closeItemCard()">
+<div class="item-card">
+    <div class="close-button">
+        <button
+            mat-icon-button
+            color="primary"
+            aria-label="Close card"
+            (click)="closeItemCard()"
+        >
             <mat-icon>close</mat-icon>
         </button>
     </div>
 
     <div
         *ngIf="countdown_init && item.id"
-        style="font-size: 30px; color: red; text-align: center; margin-top: 10px;"
+        class="time-left"
     >
         <span>Time left: </span>
+        <span
+            *ngIf="time_left_days > 0"
+            style="margin-right: 10px;"
+        >{{ time_left_days }} days</span>
         <countdown [config]="{leftTime: left_time, format: 'HH:mm:ss'}"></countdown>
     </div>
 
@@ -23,12 +29,13 @@
 
         <mat-form-field class="example-full-width">
             <mat-label>Title</mat-label>
-            <input matInput
-                [formControl]="titleFormControl"
-                [errorStateMatcher]="matcher"
+            <input
+                matInput
                 placeholder="Title"
                 [(ngModel)]="item.title"
                 [readonly]="!edit_mode"
+                required
+                [formControl]="titleFormControl"
                 formControlName="titleInput"
             >
             <mat-error *ngIf="titleFormControl.hasError('required')">
@@ -36,115 +43,130 @@
             </mat-error>
         </mat-form-field>
 
-    <br />
+        <br />
 
-    <mat-form-field class="example-full-width" style="width: 400px;">
-        <mat-label>Description</mat-label>
-        <textarea matInput
-            cdkTextareaAutosize
-            #autosize="cdkTextareaAutosize"
-            cdkAutosizeMinRows="1"
-            cdkAutosizeMaxRows="5"
-            [(ngModel)]="item.description"
-            [readonly]="!edit_mode"
-            formControlName="descriptionInput"
-        ></textarea>
-    </mat-form-field>
+        <mat-form-field class="example-full-width item-desc">
+            <mat-label>Description</mat-label>
+            <textarea
+                matInput
+                cdkTextareaAutosize
+                #autosize="cdkTextareaAutosize"
+                cdkAutosizeMinRows="1"
+                cdkAutosizeMaxRows="5"
+                [(ngModel)]="item.description"
+                [readonly]="!edit_mode"
+                formControlName="descriptionInput"
+            ></textarea>
+        </mat-form-field>
 
-    <br />
+        <br />
 
-    <mat-form-field
-        *ngIf="!edit_mode"
-        class="example-full-width"
-    >
-        <mat-label>Price</mat-label>
-        <input
-            matInput
-            [(ngModel)]="item.price"
-            [readonly]="true"
-            [ngModelOptions]="{standalone: true}"
+        <mat-form-field
+            *ngIf="!edit_mode"
+            class="example-full-width"
         >
-    </mat-form-field>
+            <mat-label>Price</mat-label>
+            <input
+                matInput
+                [(ngModel)]="item.price"
+                [readonly]="true"
+                [ngModelOptions]="{standalone: true}"
+            >
+        </mat-form-field>
 
-    <mat-form-field
-        appearance="fill"
-        *ngIf="edit_mode"
-    >
-        <mat-label>Price</mat-label>
-        <input
-            matInput
-            type="number"
-            required
-            class="example-right-align"
-            [(ngModel)]="item.price"
-            formControlName="priceInput"
+        <mat-form-field
+            appearance="fill"
+            *ngIf="edit_mode"
         >
-        <span matPrefix>$&nbsp;</span>
-    </mat-form-field>
+            <mat-label>Price</mat-label>
+            <input
+                matInput
+                type="number"
+                required
+                class="example-right-align"
+                (keypress)="helpersService.numberOnly($event)"
+                [(ngModel)]="item.price"
+                formControlName="priceInput"
+                [formControl]="priceFormControl"
+            >
+            <span matPrefix>$&nbsp;</span>
+            <mat-error *ngIf="priceFormControl.hasError('max')">
+                $100000 is max price
+            </mat-error>
+        </mat-form-field>
 
-    <br />
+        <br />
 
-    <mat-form-field
-        appearance="fill"
-        *ngIf="edit_mode"
-    >
-        <mat-label>Close date</mat-label>
-        <input
-            matInput
-            [owlDateTime]="dt1"
-            [owlDateTimeTrigger]="dt1"
-            placeholder="Date Time"
-            [(ngModel)]="moment"
-            formControlName="closedtInput"
+        <mat-form-field
+            appearance="fill"
+            *ngIf="edit_mode"
         >
-        <owl-date-time #dt1></owl-date-time>
-    </mat-form-field>
+            <mat-label>Close date</mat-label>
+            <input
+                matInput
+                [owlDateTime]="dt1"
+                [owlDateTimeTrigger]="dt1"
+                [owlDateTimeFilter]="myFilter"
+                placeholder="Date Time"
+                [(ngModel)]="close_dt"
+                formControlName="closedtInput"
+            >
+            <owl-date-time #dt1></owl-date-time>
+        </mat-form-field>
 
-    <br />
+        <br />
 
-    <button
-        *ngIf="edit_mode && item.id"
-        style="margin-bottom: 20px;"
-        (click)="updateItem()" mat-raised-button
-        color="primary"
-        type="submit"
-    >Save changes</button>
+        <button
+            *ngIf="edit_mode && item.id"
+            class="item-save"
+            (click)="updateItem()" mat-raised-button
+            color="primary"
+            type="submit"
+        >Save changes</button>
 
-    <button
-        *ngIf="edit_mode && !item.id"
-        style="margin-bottom: 20px;"
-        (click)="addItem()" mat-raised-button
-        color="primary"
-        type="submit"
-    >Add item</button>
+        <button
+            *ngIf="edit_mode && !item.id"
+            class="item-add-item"
+            (click)="addItem()" mat-raised-button
+            color="primary"
+            type="submit"
+        >Add item</button>
 
     </form>
 
     <div *ngIf="!edit_mode">
-        <mat-form-field class="example-full-width">
-            <mat-label>Bid, $</mat-label>
-            <input
-                matInput
-                type="number"
-                placeholder="$0.00"
-                [(ngModel)]="bid_price"
-            >
-        </mat-form-field>
+        <form [formGroup]="formBid">
+            <mat-form-field class="example-full-width">
+                <mat-label>Bid, $</mat-label>
+                <input
+                    matInput
+                    type="number"
+                    (keypress)="helpersService.numberOnly($event)"
+                    placeholder="$0.00"
+                    [(ngModel)]="bid_price"
+                    formControlName="bidInput"
+                    [formControl]="bidFormControl"
+                >
+                <mat-error *ngIf="bidFormControl.hasError('max')">$100000 is max bid</mat-error>
+            </mat-form-field>
 
-        <button
-            style="margin-left: 10px;"
-            (click)="makeBid()" mat-raised-button
-            color="primary"
-        >Submit bid</button>
+            <button
+                class="item-submit-bid"
+                (click)="makeBid()"
+                mat-raised-button
+                color="primary"
+            >Submit bid</button>
+        </form>
     </div>
 
-    <h2 *ngIf="!edit_mode">Bids:</h2>
+    <h2 *ngIf="!edit_mode" class="mat-h2" style="margin-bottom: 0px;">Recent bids:</h2>
 
     <table
         *ngIf="!edit_mode"
-        mat-table [dataSource]="bids" class="example-table"
+        mat-table
         mat-elevation-z8
-        style="margin-right: 30px; width: 400px;"
+        [dataSource]="bids"
+        class="example-table bids-list"
     >
         <ng-container matColumnDef="price">
             <th mat-header-cell *matHeaderCellDef>Price</th>
@@ -159,11 +181,12 @@
         <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Created</th>
             <td
-                mat-cell *matCellDef="let row"
-            >{{ helpersService.getDateTimeFromEpoch(row.bid_dt) }}</td>
+                mat-cell
+                *matCellDef="let row"
+            >{{ helpersService.getDateTimeFromEpoch(row.bid_dt, 'medium') }}</td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-header-row *matHeaderRowDef="bidsDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: bidsDisplayedColumns;"></tr>
     </table>
 </div>

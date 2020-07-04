@@ -1,20 +1,11 @@
 import { Component, OnInit, Input, EventEmitter,  Output } from '@angular/core';
-import { AucItem } from '../item';
+import { AucItem, ServerResponse } from '../item';
 import { Bid } from '../bid';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
 
 import { FormControl, Validators } from '@angular/forms';
 import { FormGroup, FormBuilder } from '@angular/forms';
-import {ErrorStateMatcher} from '@angular/material/core';
-
-export class MyErrorStateMatcher implements ErrorStateMatcher {
-    isErrorState(control, form): boolean {
-        const isSubmitted = form && form.submitted;
-        return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted));
-    }
-}
-
 
 @Component({
   selector: 'item-card',
@@ -22,25 +13,62 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
   styles: []
 })
 export class ItemCardComponent implements OnInit {
-    @Input() item_id: Number;
-    @Input() item: AucItem;
-    @Input() edit_mode: Boolean;
-    @Output() itemCardEvent: EventEmitter<string> = new EventEmitter<string>();
-    bids: Bid[] = [];
-    bid_price: Number;
-    moment;
+    // Auction item id
+    @Input() item_id: number;
 
+    // Auction item
+    @Input() item: AucItem;
+
+    // False - view item
+    // True - add new item or edit current item
+    @Input() edit_mode: boolean;
+
+    // Send events for parent list for closing card and updating list
+    @Output() itemCardEvent: EventEmitter<string> = new EventEmitter<string>();
+
+    // List of bids
+    bids: Bid[] = [];
+
+    // Field for submit new bid
+    bid_price: number;
+
+    // Item close datetime
+    close_dt: Date;
+
+    // Show countdown component
     countdown_init: boolean = false;
+
+    // Left time in sec
     left_time: number;
 
-    displayedColumns: string[] = ['user_name', 'price', 'date'];
+    // Left time days
+    time_left_days: number;
 
+    // Columns of bids table
+    bidsDisplayedColumns: string[] = ['user_name', 'price', 'date']; //
+
+    // Validators for title
     titleFormControl = new FormControl('', [
         Validators.required
     ]);
-    matcher = new MyErrorStateMatcher();
 
+    // Validators for price
+    priceFormControl = new FormControl('', [
+        Validators.required,
+        Validators.max(100000)
+    ]);
+
+    // Validators for new bid
+    bidFormControl = new FormControl('', [
+        Validators.required,
+        Validators.max(100000)
+    ]);
+
+    // Form for editing item
     form: FormGroup;
+
+    // Form for submiting new bid
+    formBid: FormGroup;
 
     constructor(
         private rpcService: RpcService,
@@ -49,81 +77,94 @@ export class ItemCardComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        this.getItem();
+        this.updateCard();
 
+        // Forms config. Validators setup
         this.form = this.formBuilder.group({
             titleInput: [null, Validators.required],
             descriptionInput: [null, Validators.required],
-            priceInput: [null, Validators.required],
+            priceInput: [Validators.required, Validators.max(100000)],
             closedtInput: [null, Validators.required]
         });
+
+        this.formBid = this.formBuilder.group({
+            bidInput: [Validators.required, Validators.max(100000)],
+        });
+
     }
 
-    getItem(): void {
+    /**
+     * Get data from backend and fill fields for item and bids list
+     */
+    updateCard() {
         if (!this.item_id) {
             return;
         }
 
-        this.updateCard();
-    }
-
-    updateCard() {
         this.rpcService.getItem(this.item_id)
-            .subscribe(item => this.initItem(item));
+            .subscribe(item => this.getItemHandler(item));
 
-        this.getBids();
-
-        this.bid_price = null;
-    }
-
-    initItem(item) {
-        this.item = item;
-        let dt = new Date(0);
-        dt.setUTCSeconds(item.close_dt);
-        this.moment = dt;
-
-        let epoch = Math.round(Date.now() / 1000);
-        this.left_time = item.close_dt - epoch;
-        this.left_time = this.left_time > 0 ? this.left_time : 0;
-        this.countdown_init = true;
-    }
-
-    getBids(): void {
         this.rpcService.getBids(this.item_id)
             .subscribe(bids => this.bids = bids);
     }
 
+    /**
+     * Init calculated fields of item's card
+     * @param  {AucItem} item Auction item from backend
+     */
+    getItemHandler(item: AucItem) {
+        this.item = item;
+        this.bid_price = null;
+
+        this.close_dt = this.helpersService.getDateFromEpoch(item.close_dt);
+        let epoch = this.helpersService.getCurrentEpoch();
+
+        this.left_time = item.close_dt - epoch;
+        this.left_time = this.left_time > 0 ? this.left_time : 0;
+        this.time_left_days = Math.floor(this.left_time / 86400); // 86400 secs in day
+        this.countdown_init = true;
+    }
+
+    /**
+     * Adding new item
+     */
     addItem(): void {
         if (!this.form.valid) {
             this.validateAllFormFields(this.form);
             return;
         }
 
-        if (!this.moment) {
+        if (!this.close_dt) {
             alert('You have to choose a time for closing the lot.');
             return;
         }
-        this.item.close_dt = Math.round(this.moment.getTime() / 1000);
-        // this.item.price = parseInt(this.item.price, 10)
+        this.item.close_dt = this.helpersService.getEpochFromDatetime(this.close_dt);
         this.rpcService.addItem(this.item)
             .subscribe(
                 () => this.itemCardEvent.emit('new_item_created')
             );
     }
 
+    /**
+     * Validate form and update item in DB
+     */
     updateItem(): void {
         if (!this.form.valid) {
             this.validateAllFormFields(this.form);
             return;
         }
 
-        this.item.close_dt = Math.round(this.moment.getTime() / 1000);
+        this.item.close_dt = this.helpersService.getEpochFromDatetime(this.close_dt);
         this.rpcService.updateItem(this.item)
             .subscribe(
                 () => this.itemCardEvent.emit('item_updated')
             );
     }
 
+    /**
+     * Validate whole form
+     * @param formGroup form group for validation
+     */
     validateAllFormFields(formGroup: FormGroup) {
         Object.keys(formGroup.controls).forEach(field => {
             const control = formGroup.get(field);
@@ -135,11 +176,31 @@ export class ItemCardComponent implements OnInit {
         });
     }
 
+    /**
+     * Filter for date picker. It allows to choose only datetime in future
+     * @param d Date for datetime picker
+     */
+    myFilter(d: Date): boolean {
+        let dateTime = new Date();
+        return d > dateTime;
+    }
+
+    /**
+     * Close card and back to listview
+     */
     closeItemCard(): void {
         this.itemCardEvent.emit('item_card_closed');
     }
 
+    /**
+     * Send new bid for item
+     */
     makeBid(): void {
+        if (!this.formBid.valid) {
+            this.validateAllFormFields(this.form);
+            return;
+        }
+
         if (!this.bid_price) {
             this.bid_price = 0;
         }
@@ -155,6 +216,18 @@ export class ItemCardComponent implements OnInit {
         }
 
         this.rpcService.makeBid(this.item_id, this.bid_price)
-            .subscribe(() => this.updateCard());
+            .subscribe(res => this.makeBidHandler(res));
+    }
+
+    /**
+     * Handle submit bid result. Updating card after every attempt
+     * @param res Result of submiting bid
+     */
+    makeBidHandler(res: ServerResponse) {
+        if (!res.result) {
+            alert(res.msg);
+        }
+
+        this.updateCard();
     }
 }
