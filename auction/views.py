@@ -1,12 +1,11 @@
 import json
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 
-from .auction import AuctionItem, Authorization, AuctionItems
+from .auction import AuctionItem, Authorization, AuctionList
 from .models import Item
-
 
 
 def index_view(request):
@@ -21,19 +20,19 @@ def items_view(request):
     POST: add new item
     GET: return a list of all items
     """
-    data = json.loads(request.body.decode('utf-8'))
     if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
         params = ['title', 'description', 'close_dt', 'price']
         missing_params = [p for p in params if p not in data]
         if len(missing_params) > 0:
             result = {'result': False, 'msg': 'Missing parameters: ' + ', '.join(missing_params)}
             return HttpResponse(json.dumps(result), content_type="text/json")
 
-        new_id = AuctionItem.add(data)
+        new_id = AuctionItem().add(data)
         result = {'result': True, 'id': new_id}
         return HttpResponse(json.dumps(result), content_type="text/json")
     else:
-        items_list = AuctionItems.get_list(request.GET)
+        items_list = AuctionList().get_list(request.GET)
         items_json = json.dumps(items_list, cls=DjangoJSONEncoder)
         return HttpResponse(items_json, content_type="text/json")
 
@@ -46,29 +45,22 @@ def item_info_view(request, pk):
     DELETE: delete item
     GET: read item
     """
-    if pk and pk != 'null':
-        item = get_object_or_404(Item, pk=pk)
-        if not item:
-            return HttpResponse("Item is undefined.")
-    else:
-        return HttpResponse("Item id is incorrect.")
     # Edit item
     if request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
-        result = AuctionItem.edit(data, item)
+        result = AuctionItem(pk).edit(data)
         return HttpResponse(json.dumps({"result": result}), content_type="text/json")
     # Delete item
     elif request.method == 'DELETE':
-        result = AuctionItem.delete(item)
+        result = AuctionItem(pk).delete()
         return HttpResponse(json.dumps({"result": result}), content_type="text/json")
     # Read item
     elif request.method == 'GET':
-        result = AuctionItem.read(item)
+        result = AuctionItem(pk).read()
         return HttpResponse(
             json.dumps(result, cls=DjangoJSONEncoder),
             content_type="text/json"
         )
-
 
 
 def sign_in_view(request):
@@ -79,16 +71,12 @@ def sign_in_view(request):
     [password]
     """
     data = json.loads(request.body.decode('utf-8'))
-    result = Authorization.login(data)
+    result = Authorization().login(data)
     return HttpResponse(json.dumps(result), content_type="text/json")
 
 
 def item_bids_view(request, pk):
     """Read bids/set new bid for an item"""
-    item = get_object_or_404(Item, pk=pk)
-    if not(item):
-        result = {'result': False, 'msg': 'Item is undefined.'}
-        return HttpResponse(json.dumps(result), content_type="text/json")
     # Set bid
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
@@ -101,11 +89,11 @@ def item_bids_view(request, pk):
             result = {'result': False, 'msg': 'Username is required.'}
             return HttpResponse(json.dumps(result), content_type="text/json")
 
-        result = AuctionItem.set_bid(data, item)
-        HttpResponse(json.dumps(result), content_type="text/json")
+        result = AuctionItem(pk).set_bid(data)
+        return HttpResponse(json.dumps(result), content_type="text/json")
     # Get bids list
     elif request.method == 'GET':
-        bids_list = AuctionItem.get_bids(item)
+        bids_list = AuctionItem(pk).get_bids()
         bids_json = json.dumps(bids_list, cls=DjangoJSONEncoder)
         return HttpResponse(bids_json, content_type="text/json")
 

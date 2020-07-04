@@ -3,11 +3,19 @@ import json
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 
 from .models import Item, Bid
 from . import utils
 
 class AuctionItem():
+    def __init__(self, item_id=None):
+        self.item = None
+        if item_id:
+            self.item = get_object_or_404(Item, pk=item_id)
+            if not self.item:
+                raise Exception('Item not found.')
+
     def add(self, data):
         """
         Create new item.
@@ -23,7 +31,7 @@ class AuctionItem():
         new_item = Item.objects.create(**data)
         return new_item.id
 
-    def edit(self, data, item):
+    def edit(self, data):
         """
         Edit an item.
 
@@ -34,38 +42,38 @@ class AuctionItem():
         [price] - item start price
         """
 
-        item.title = data.get('title', item.title)
-        item.description = data.get('description', item.description)
-        item.price = data.get('price', item.price)
-        item.close_dt = utils.from_epoch(data.get('close_dt'), item.close_dt)
-        item.save()
+        self.item.title = data.get('title', self.item.title)
+        self.item.description = data.get('description', self.item.description)
+        self.item.price = data.get('price', self.item.price)
+        self.item.close_dt = utils.from_epoch(data.get('close_dt', self.item.close_dt))
+        self.item.save()
 
         return True
 
 
-    def delete(self, item):
+    def delete(self):
         """Delete an item"""
-        item.delete()
+        self.item.delete()
         return True
 
 
-    def read(self, item):
+    def read(self):
         """Read an item"""
         result = {
-            'id': item.id,
-            'title': item.title,
-            'description': item.description,
-            'create_dt': utils.to_epoch(item.create_dt),
-            'close_dt': utils.to_epoch(item.close_dt),
-            'price': item.price
+            'id': self.item.id,
+            'title': self.item.title,
+            'description': self.item.description,
+            'create_dt': utils.to_epoch(self.item.create_dt),
+            'close_dt': utils.to_epoch(self.item.close_dt),
+            'price': self.item.price
         }
 
         return result
 
 
-    def get_bids(self, item):
+    def get_bids(self):
         """Get bids list for an item."""
-        bids_qs = Bid.objects.filter(item_id=item).order_by('-bid_dt')
+        bids_qs = Bid.objects.filter(item_id=self.item).order_by('-bid_dt')
 
         bids_list = [{
             "id": bid.id,
@@ -77,7 +85,7 @@ class AuctionItem():
         return bids_list
 
 
-    def set_bid(self, data, item):
+    def set_bid(self, data):
         """
         Set a bid for an item.
 
@@ -86,19 +94,19 @@ class AuctionItem():
         [price] - bid value
         [user_name] - user making a bid
         """
-        price = int(data.get('price'))
+        price = data.get('price')
         user_name = data.get('user_name')
 
-        if item.close_dt <= timezone.now():
+        if self.item.close_dt <= timezone.now():
             result = {'result': False, 'msg': 'Sorry, this lot is already closed.'}
             return result
 
         # Bid must be higher than the last one
-        if price <= item.price:
+        if price <= self.item.price:
             result = {'result': False, 'msg': 'You have to make a higher bid.'}
             return result
 
-        bids_qs = Bid.objects.filter(item_id=item).order_by('-bid_dt')
+        bids_qs = Bid.objects.filter(item_id=self.item).order_by('-bid_dt')
 
         # User cannot make a bid if his bid is already the highest
         if bids_qs.count() > 0:
@@ -107,13 +115,13 @@ class AuctionItem():
                 result = {'result': False, 'msg': 'Your bid is already the highest.'}
                 return result
 
-        data['item_id'] = item
+        data['item_id'] = self.item
         new_bid = Bid.objects.create(**data)
         result = {"result": True, 'id': new_bid.id}
         return result
 
 
-class AuctionItems():
+class AuctionList():
     def get_list(self, data):
         """
         Return a list of items.
@@ -128,7 +136,7 @@ class AuctionItems():
         page_number = data.get('page', 0)
         sort = data.get('sort', 'create_dt')
         order = data.get('order', 'asc')
-        search_string = data.get('search_string', None)
+        search_string = None # data.get('search_string', None)
         show_closed = data.get('show_closed', False)
 
         items_qs = Item.objects.all()
@@ -139,7 +147,7 @@ class AuctionItems():
             )
 
         if not show_closed:
-            items_qs = items_qs.filter(close_dt__lt=timezone.now())
+            items_qs = items_qs.filter(close_dt__gt=timezone.now())
 
         if sort:
             sorting_column = sort if order == 'asc' else '-' + sort
@@ -160,7 +168,7 @@ class AuctionItems():
                 "description": item.description,
                 "create_dt": utils.to_epoch(item.create_dt),
                 "close_dt": utils.to_epoch(item.close_dt),
-                "price": item.price,
+                "price": int(item.price),
             } for item in items_qs],
             'total_count': total_count
         }

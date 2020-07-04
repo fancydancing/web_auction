@@ -13,25 +13,27 @@ class Item(models.Model):
     title = models.CharField(max_length=255)
     create_dt = models.DateTimeField(
         null=False, default=timezone.now, verbose_name='Created at'
-    )
+        )
     close_dt = models.DateTimeField(
         null=False, verbose_name='Closing at'
-    )
-    price = models.DecimalField(
-        default=0, decimal_places=0, max_digits=20, verbose_name='Price, $'
-    )
-    description = models.CharField(max_length=255, null=True)
+        )
+    price = models.IntegerField(
+        default=0, verbose_name='Price, $'
+        )
+    description = models.CharField(
+        max_length=255, null=True, verbose_name='Description'
+        )
 
 
 class Bid(models.Model):
     """Bid model."""
     user_name = models.CharField(max_length=255)
-    bid_dt = models.DateTimeField(null=False, default=timezone.now)
+    bid_dt = models.DateTimeField(null=False, default=timezone.now, verbose_name='Set at')
     item_id = models.ForeignKey(
         Item, models.CASCADE, null=False, verbose_name='Item title'
     )
-    price = models.DecimalField(
-        default=0, decimal_places=0, max_digits=20, verbose_name=''
+    price = models.IntegerField(
+        default=0, verbose_name='Bid value'
     )
 
 
