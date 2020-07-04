@@ -6,6 +6,8 @@ def to_epoch(value):
     return int(time.mktime(value.timetuple()))
 
 
-def from_epoch(value:int):
+def from_epoch(value: int):
     """Convert integer (epoch time) to a datetime"""
+    if value is None:
+        return None
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(value))

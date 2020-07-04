@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404
 from .models import Item, Bid
 from . import utils
 
+ALL_ITEMS = -1
+
 class AuctionItem():
     def __init__(self, item_id=None):
         self.item = None
@@ -16,22 +18,23 @@ class AuctionItem():
             if not self.item:
                 raise Exception('Item not found.')
 
-    def add(self, data:dict):
+    def add(self, data: dict) -> int:
         """
         Create new item.
 
-        request parameters:
-        [title:str] - item title
-        [description:str] - item description
-        [close_dt:int] - closing time for bids
-        [price:int] - item start price
+        parameters in data:
+        [title: str] - item title
+        [description: str] - item description
+        [close_dt: int] - closing time for bids
+        [price: int] - item start price
         """
+
         data['close_dt'] = utils.from_epoch(data['close_dt'])
 
         new_item = Item.objects.create(**data)
         return new_item.id
 
-    def edit(self, data:dict):
+    def edit(self, data: dict) -> bool:
         """
         Edit an item.
 
@@ -45,19 +48,18 @@ class AuctionItem():
         self.item.title = data.get('title', self.item.title)
         self.item.description = data.get('description', self.item.description)
         self.item.price = data.get('price', self.item.price)
-        self.item.close_dt = utils.from_epoch(data.get('close_dt', self.item.close_dt))
+        self.item.close_dt = utils.from_epoch(data.get('close_dt')) or self.item.close_dt
         self.item.save()
 
         return True
 
 
-    def delete(self):
+    def delete(self) -> bool:
         """Delete an item"""
         self.item.delete()
         return True
 
-
-    def read(self):
+    def read(self) -> dict:
         """Read an item"""
         result = {
             'id': self.item.id,
@@ -70,22 +72,22 @@ class AuctionItem():
 
         return result
 
-
-    def get_bids(self):
+    def get_bids(self) -> list:
         """Get bids list for an item."""
         bids_qs = Bid.objects.filter(item_id=self.item).order_by('-bid_dt')
 
-        bids_list = [{
+        bids_list = []
+        for bid in bids_qs:
+            bids_list.append({
             "id": bid.id,
             "bid_dt": utils.to_epoch(bid.bid_dt),
             "price": bid.price,
             "user_name": bid.user_name
-        } for bid in bids_qs]
+        })
 
         return bids_list
 
-
-    def set_bid(self, data:dict):
+    def set_bid(self, data: dict) -> dict:
         """
         Set a bid for an item.
 
@@ -117,26 +119,28 @@ class AuctionItem():
 
         data['item_id'] = self.item
         new_bid = Bid.objects.create(**data)
-        result = {"result": True, 'id': new_bid.id}
+        result = {'result': True, 'id': new_bid.id}
         return result
 
 
 class AuctionList():
-    def get_list(self, data):
+    def get_list(self, data: dict) -> list:
         """
         Return a list of items.
 
-        request parameters:
-        [page:int] - number of page
-        [sort:str] - 'asc' or 'desc'
-        [order:str] - field name to sort on
-        [search_string:str] - string to find in title or description
-        [show_closed:bool] - show closed items or not
+        parameters in data:
+            page: int - number of page
+            page_size: int - size of page
+            sort: str - 'asc' or 'desc'
+            order: str - field name to sort on
+            search_string: str - string to find in title or description
+            show_closed: bool - show closed items or not
         """
         page_number = data.get('page', 0)
+        page_size = data.get('page_size', 10)
         sort = data.get('sort', 'create_dt')
         order = data.get('order', 'asc')
-        search_string = None # data.get('search_string', None)
+        search_string = data.get('search_string', None)
         show_closed = data.get('show_closed', False)
 
         items_qs = Item.objects.all()
@@ -150,26 +154,28 @@ class AuctionList():
             items_qs = items_qs.filter(close_dt__gt=timezone.now())
 
         if sort:
-            sorting_column = sort if order == 'asc' else '-' + sort
+            sorting_column = ('' if order == 'asc' else '-') + sort
             items_qs = items_qs.order_by(sorting_column)
 
         total_count = items_qs.count()
-        if page_number:
+        if page_size != ALL_ITEMS and page_number:
             paginator = Paginator(items_qs, 10)  # Show 10 items per page
             # Zero page in Django is the last for the interface
             inverted_page = paginator.num_pages - int(page_number) - 1
             items_qs = paginator.get_page(inverted_page).object_list
 
+        items = []
+        for item in items_qs:
+            items.append({
+                'id': item.id,
+                'title': item.title,
+                'description': item.description,
+                'create_dt': utils.to_epoch(item.create_dt),
+                'close_dt': utils.to_epoch(item.close_dt),
+                'price': int(item.price),
+            })
         items_list = {
-            'items':
-            [{
-                "id": item.id,
-                "title": item.title,
-                "description": item.description,
-                "create_dt": utils.to_epoch(item.create_dt),
-                "close_dt": utils.to_epoch(item.close_dt),
-                "price": int(item.price),
-            } for item in items_qs],
+            'items': items,
             'total_count': total_count
         }
 
@@ -177,7 +183,7 @@ class AuctionList():
 
 
 class Authorization():
-    def login(self, data):
+    def login(self, data: dict) -> dict:
         # Users allowed to login
         login_pass = {'admin': 'admin',
                       'user': 'user',
@@ -187,9 +193,10 @@ class Authorization():
         password = data.get('password')
 
         # Login/password check
-        if username not in login_pass.keys() or password != login_pass[username]:
+        if username not in login_pass or password != login_pass[username]:
             res = False
             role = None
+            username = None
         else:
             res = True
             role = 'admin' if username == 'admin' else 'user'

@@ -24,7 +24,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'auction.apps.AuctionConfig',
+    'auction',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -72,7 +72,7 @@ DATABASES = {
         'NAME': 'web_auction',
         'USER': 'django_user',
         'PASSWORD': 'django_password',
-        'HOST': '127.0.0.1',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
