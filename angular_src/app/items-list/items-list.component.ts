@@ -55,7 +55,8 @@ export class ItemsListComponent implements AfterViewInit  {
                         page: this.paginator.pageIndex,
                         sort: this.sort.active,
                         order: this.sort.direction,
-                        search_string: this.search_string
+                        search_string: this.search_string,
+                        show_closed: true
                     });
                 }),
                 map(data => {
@@ -89,7 +90,8 @@ export class ItemsListComponent implements AfterViewInit  {
             page: this.paginator.pageIndex,
             sort: this.sort.active,
             order: this.sort.direction,
-            search_string: this.search_string
+            search_string: this.search_string,
+            show_closed: true
         })
         .subscribe(data => this.handleResult(data));
     }
@@ -139,7 +141,7 @@ export class ItemsListComponent implements AfterViewInit  {
         if (ev == 'new_item_created') {
             this.setListViewMode(true);
         } else if (ev == 'item_card_closed') {
-            this.setListViewMode(false);
+            this.setListViewMode(true);
         } else if (ev == 'item_updated') {
             this.setListViewMode(true);
         }

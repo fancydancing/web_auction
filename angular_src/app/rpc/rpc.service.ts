@@ -6,7 +6,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { AucItem, AucItems } from '../item';
+import { AucItem, AucItems, ServerResponse } from '../item';
 import { Bid } from '../bid';
 
 
@@ -22,11 +22,20 @@ export class RpcService {
     constructor(private http: HttpClient, private cookieService: CookieService) { }
 
     getItems(params): Observable<AucItems> {
-        const ps = new HttpParams()
-            .set('page', params.page ? params.page : 0)
-            .set('sort', params.sort ? params.sort : 'create_dt')
-            .set('order', params.order ? params.order : 'desc')
-            .set('search_string', params.search_string ? params.search_string : null);
+        let ps = {
+            'page': params.page ? params.page : 0,
+            'sort': params.sort ? params.sort : 'create_dt',
+            'order': params.order ? params.order : 'desc',
+            'show_closed': params.show_closed
+        };
+
+        if (params.page_size) {
+            ps['page_size'] = params.page_size;
+        }
+
+        if (params.search_string) {
+            ps['search_string'] = params.search_string;
+        }
 
         return this.http.get<AucItems>(this.itemsUrl, { params: ps })
             .pipe(
@@ -60,13 +69,18 @@ export class RpcService {
             );
     }
 
-    makeBid(item_id: Number, bid_price: Number): Observable<{}> {
+    /**
+     * Send new bid to backend
+     * @param item_id Item id
+     * @param bid_price Item bid price in $
+     */
+    makeBid(item_id: number, bid_price: number): Observable<ServerResponse> {
         let user_name = this.cookieService.get('auction_user_name');
 
         const url = `api/items/${item_id}/bids`;
-        return this.http.post(url, {price: bid_price, user_name: user_name})
+        return this.http.post<ServerResponse>(url, {price: bid_price, user_name: user_name})
             .pipe(
-                catchError(this.handleError('makeBid'))
+                catchError(this.handleError<ServerResponse>('makeBid'))
             );
     }
 

@@ -1,0 +1,36 @@
+<div [style.display]="getListViewDisplay()">
+    <ng-template ngFor let-item [ngForOf]="items">
+        <div class="responsive">
+            <mat-card class="example-card">
+                <mat-card-header>
+                    <mat-card-title class="gallery-title">{{ item.title }}</mat-card-title>
+                    <mat-card-subtitle>
+                        {{ helpersService.getDateTimeFromEpoch(item.create_dt) }}
+                    </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content class="gallery-desc">
+                    <p>{{ item.description }}</p>
+                </mat-card-content>
+                <mat-card-actions class="gallery-action">
+                    <button
+                        class="gallery-title-submit"
+                        (click)="onSelect(item)"
+                        mat-raised-button
+                        color="primary"
+                    >Submit bid</button>
+                    <span class="gallery-price">${{ item.price }}</span>
+                </mat-card-actions>
+            </mat-card>
+        </div>
+    </ng-template>
+
+    <div class="clearfix"></div>
+</div>
+
+<div *ngIf="mode == 'item_view'">
+    <item-card
+        [item_id]="selectedItem.id"
+        [edit_mode]="false"
+        (itemCardEvent)="onItemCardEvent($event)"
+    ></item-card>
+</div>

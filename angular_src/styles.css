@@ -1,5 +1,84 @@
 /* You can add global styles to this file, and also import other style files */
 
+.item-card {
+  margin-left: 30px; 
+  border: 1px solid; 
+  width: 500px; 
+  padding-left: 20px;
+}
+
+.time-left {
+  font-size: 30px; 
+  color: red; 
+  text-align: center; 
+  margin-top: 10px;
+}
+
+.close-button {
+  position: relative; 
+  float: right;
+}
+
+.add-new {
+  margin-left: 30px !important; 
+  margin-bottom: 30px !important;
+}
+
+.search-field {
+  margin-left: 30px
+}
+
+.items-table {
+  margin-right: 30px; 
+  margin-left: 30px; 
+  width: 90%;
+}
+
+.delete-button {
+  margin-left: 10px;
+}
+
+.action_link {
+    color: #3f51b5;
+    cursor: pointer;
+}
+
+.gallery-title-submit {
+  margin-left: 24px;
+}
+
+.bids-list {
+  margin-right: 30px; 
+  width: 400px;
+}
+
+.item-submit-bid {
+  margin-left: 10px !important;
+}
+
+.item-add-item {
+  margin-bottom: 20px !important;
+}
+
+.item-save {
+  margin-bottom: 20px !important;
+}
+
+.item-desc {
+  width: 400px; 
+}
+
+.gallery-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 200px;
+}
+
+.gallery-action {
+  white-space: nowrap;
+}
+
 .gallery-title {
   font-weight: bold;
 }
@@ -24,9 +103,17 @@
   height: 200px;
 }
 
+@media only screen and (max-width: 1000px) {
+  .responsive {
+    width: 30%;
+    margin: 20px;
+  }
+}
+
+
 @media only screen and (max-width: 700px) {
   .responsive {
-    width: 40%;
+    width: 49%;
     margin: 20px;
   }
 }
