@@ -25,21 +25,23 @@ http://webauction.herokuapp.com/
 # Local machine deployment
 1. Install [Docker](www.docker.com).
 
-2. Move to project folder:
+2. Before cloning git repository, set git config option `core.autocrlf=false`.
+
+3. Move to project folder:
 ```bash
 $ cd <your_git_clone_folder_path>/web_auction
 ```
 
-2. Check ip address for web service:
+4. Check ip address for web service:
 ```bash
 $ docker-machine ip default
 ```
 
-3. Build and run Docker container:
+5. Build and run Docker container:
 ```bash
 $ docker-compose build
 $ docker-compose up
 ```
 
-4. Open ip address (from step 2) in browser with port 8000. For example, in Windows: `192.168.99.100:8000`
+6. Open ip address (from step 2) in browser with port 8000. For example, in Windows: `192.168.99.100:8000`
 
