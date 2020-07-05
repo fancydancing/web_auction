@@ -10,6 +10,15 @@ from . import utils
 
 ALL_ITEMS = -1
 
+# Users allowed to login
+LOGIN_PASS = {
+    'admin': {'password': 'admin', 'role': 'admin'},
+    'user': {'password': 'user', 'role': 'user'},
+    'user2': {'password': 'user2', 'role': 'user'}
+    }
+
+
+
 class AuctionItem():
     def __init__(self, item_id=None):
         self.item = None
@@ -23,10 +32,10 @@ class AuctionItem():
         Create new item.
 
         parameters in data:
-        [title: str] - item title
-        [description: str] - item description
-        [close_dt: int] - closing time for bids
-        [price: int] - item start price
+            title: str - item title
+            description: str - item description
+            close_dt: int - closing time for bids
+            price: int - item start price
         """
 
         data['close_dt'] = utils.from_epoch(data['close_dt'])
@@ -39,10 +48,10 @@ class AuctionItem():
         Edit an item.
 
         parameters in data:
-        [title:str] - item title
-        [description:str] - item description
-        [close_dt:int] - closing time for bids
-        [price:str] - item start price
+            title: str - item title
+            description: str - item description
+            close_dt: int - closing time for bids
+            price: str - item start price
         """
 
         self.item.title = data.get('title', self.item.title)
@@ -61,7 +70,7 @@ class AuctionItem():
 
     def read(self) -> dict:
         """Read an item"""
-        result = {
+        return {
             'id': self.item.id,
             'title': self.item.title,
             'description': self.item.description,
@@ -70,8 +79,6 @@ class AuctionItem():
             'price': self.item.price
         }
 
-        return result
-
     def get_bids(self) -> list:
         """Get bids list for an item."""
         bids_qs = Bid.objects.filter(item_id=self.item).order_by('-bid_dt')
@@ -79,11 +86,11 @@ class AuctionItem():
         bids_list = []
         for bid in bids_qs:
             bids_list.append({
-            "id": bid.id,
-            "bid_dt": utils.to_epoch(bid.bid_dt),
-            "price": bid.price,
-            "user_name": bid.user_name
-        })
+                "id": bid.id,
+                "bid_dt": utils.to_epoch(bid.bid_dt),
+                "price": bid.price,
+                "user_name": bid.user_name
+            })
 
         return bids_list
 
@@ -124,44 +131,47 @@ class AuctionItem():
 
 
 class AuctionList():
-    def get_list(self, data: dict) -> list:
+    def __init__(self, data: dict):
+        """        
+        parameters in data:
+        page: int - number of page
+        page_size: int - size of page
+        sort: str - 'asc' or 'desc'
+        order: str - field name to sort on
+        search_string: str - string to find in title or description
+        show_closed: bool - show closed items or not
+        """
+        self.page_number = data.get('page', 0)
+        self.page_size = data.get('page_size', 10)
+        self.sort = data.get('sort', 'create_dt')
+        self.order = data.get('order', 'asc')
+        self.search_string = data.get('search_string', None)
+        self.show_closed = data.get('show_closed', False)
+
+
+    def get_list(self) -> list:
         """
         Return a list of items.
-
-        parameters in data:
-            page: int - number of page
-            page_size: int - size of page
-            sort: str - 'asc' or 'desc'
-            order: str - field name to sort on
-            search_string: str - string to find in title or description
-            show_closed: bool - show closed items or not
         """
-        page_number = data.get('page', 0)
-        page_size = data.get('page_size', 10)
-        sort = data.get('sort', 'create_dt')
-        order = data.get('order', 'asc')
-        search_string = data.get('search_string', None)
-        show_closed = data.get('show_closed', False)
-
         items_qs = Item.objects.all()
-        if search_string:
+        if self.search_string:
             items_qs = items_qs.filter(
-                Q(title__icontains=search_string) |
-                Q(description__icontains=search_string)
+                Q(title__icontains=self.search_string) |
+                Q(description__icontains=self.search_string)
             )
 
-        if not show_closed:
+        if not self.show_closed:
             items_qs = items_qs.filter(close_dt__gt=timezone.now())
 
-        if sort:
-            sorting_column = ('' if order == 'asc' else '-') + sort
+        if self.sort:
+            sorting_column = ('' if self.order == 'asc' else '-') + self.sort
             items_qs = items_qs.order_by(sorting_column)
 
         total_count = items_qs.count()
-        if page_size != ALL_ITEMS and page_number:
-            paginator = Paginator(items_qs, 10)  # Show 10 items per page
+        if self.page_size != ALL_ITEMS and self.page_number:
+            paginator = Paginator(items_qs, self.page_size)
             # Zero page in Django is the last for the interface
-            inverted_page = paginator.num_pages - int(page_number) - 1
+            inverted_page = paginator.num_pages - int(self.page_number) - 1
             items_qs = paginator.get_page(inverted_page).object_list
 
         items = []
@@ -172,7 +182,7 @@ class AuctionList():
                 'description': item.description,
                 'create_dt': utils.to_epoch(item.create_dt),
                 'close_dt': utils.to_epoch(item.close_dt),
-                'price': int(item.price),
+                'price': item.price,
             })
         items_list = {
             'items': items,
@@ -184,21 +194,16 @@ class AuctionList():
 
 class Authorization():
     def login(self, data: dict) -> dict:
-        # Users allowed to login
-        login_pass = {'admin': 'admin',
-                      'user': 'user',
-                      'user2': 'user2'}
-
         username = data.get('login')
         password = data.get('password')
 
         # Login/password check
-        if username not in login_pass or password != login_pass[username]:
+        if username not in LOGIN_PASS or password != LOGIN_PASS[username]['password']:
             res = False
             role = None
             username = None
         else:
             res = True
-            role = 'admin' if username == 'admin' else 'user'
+            role = LOGIN_PASS[username]['role']
 
         return {'result': res, 'login': username, 'role': role}

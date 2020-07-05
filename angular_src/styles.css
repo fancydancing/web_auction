@@ -1,41 +1,41 @@
 /* You can add global styles to this file, and also import other style files */
 
 .item-card {
-  margin-left: 30px; 
-  border: 1px solid; 
-  width: 500px; 
-  padding-left: 20px;
+    margin-left: 30px;
+    border: 1px solid;
+    width: 500px;
+    padding-left: 20px;
 }
 
 .time-left {
-  font-size: 30px; 
-  color: red; 
-  text-align: center; 
-  margin-top: 10px;
+    font-size: 30px;
+    color: red;
+    text-align: center;
+    margin-top: 10px;
 }
 
 .close-button {
-  position: relative; 
-  float: right;
+    position: relative;
+    float: right;
 }
 
 .add-new {
-  margin-left: 30px !important; 
-  margin-bottom: 30px !important;
+    margin-left: 30px !important;
+    margin-bottom: 30px !important;
 }
 
 .search-field {
-  margin-left: 30px
+    margin-left: 30px
 }
 
 .items-table {
-  margin-right: 30px; 
-  margin-left: 30px; 
-  width: 90%;
+    margin-right: 30px;
+    margin-left: 30px;
+    width: 90%;
 }
 
 .delete-button {
-  margin-left: 10px;
+    margin-left: 10px;
 }
 
 .action_link {
@@ -44,97 +44,138 @@
 }
 
 .gallery-title-submit {
-  margin-left: 24px;
+    margin-left: 24px;
 }
 
 .bids-list {
-  margin-right: 30px; 
-  width: 400px;
+    margin-right: 30px;
+    width: 400px;
 }
 
 .item-submit-bid {
-  margin-left: 10px !important;
+    margin-left: 10px !important;
 }
 
 .item-add-item {
-  margin-bottom: 20px !important;
+    margin-bottom: 20px !important;
 }
 
 .item-save {
-  margin-bottom: 20px !important;
+    margin-bottom: 20px !important;
 }
 
 .item-desc {
-  width: 400px; 
+    width: 400px;
 }
 
 .gallery-title {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  width: 200px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 200px;
 }
 
 .gallery-action {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 
 .gallery-title {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .gallery-desc {
-  height: 50px; 
-  overflow: hidden; 
-  margin-left: 16px;
+    height: 50px;
+    overflow: hidden;
+    margin-left: 16px;
 }
 
 .gallery-price {
-  font-size: x-large; 
-  font-weight: bold; 
-  margin-left: 10px;
+    font-size: x-large;
+    font-weight: bold;
+    margin-left: 10px;
 }
 
 .responsive {
-  padding: 0 6px;
-  float: left;
-  width: 20%;
-  margin: 10px;
-  height: 200px;
+    padding: 0 6px;
+    float: left;
+    width: 20%;
+    margin: 10px;
+    height: 200px;
 }
 
 @media only screen and (max-width: 1000px) {
-  .responsive {
-    width: 30%;
-    margin: 20px;
-  }
+    .responsive {
+        width: 30%;
+        margin: 20px;
+    }
 }
 
 
 @media only screen and (max-width: 700px) {
-  .responsive {
-    width: 49%;
-    margin: 20px;
-  }
+    .responsive {
+        width: 49%;
+        margin: 20px;
+    }
 }
 
 @media only screen and (max-width: 400px) {
-  .responsive {
-    width: 90%;
-    margin: 20px;
-  }
+    .responsive {
+        width: 90%;
+        margin: 20px;
+    }
 }
 
 .clearfix:after {
-  content: "";
-  display: table;
-  clear: both;
+    content: "";
+    display: table;
+    clear: both;
 }
 
 .centered {
-  position: fixed; /* or absolute */
-  top: 40%;
-  left: 40%;
+    position: fixed; /* or absolute */
+    top: 40%;
+    left: 40%;
+}
+
+.alert-center {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    margin: auto;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+
+    width: 300px;
+    background-color: white;
+    border: solid 1px;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.alert-background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background-color: dimgray;
+    opacity: 0.8;
+}
+
+.tile-left-days {
+    margin-right: 10px;
+}
+
+.recent-bids {
+    margin-bottom: 0px !important;
+}
+
+.alert-dialog-warn-button {
+    position: relative;
+    float: right;
 }
 
 html, body { height: 100%; }

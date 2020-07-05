@@ -11,19 +11,19 @@ export class HelpersService {
     ) { }
 
     /**
-     * Get formated datetime string representation
+     * Get formatted datetime string representation
      * @param epoch Epoch secs
-     * @param formating Return string format
+     * @param formatting Return string format
      */
-    getDateTimeFromEpoch(epoch: number, formating?: string): string {
+    getDateTimeFromEpoch(epoch: number, formatting?: string): string {
         let dt = new Date(0);
         dt.setUTCSeconds(epoch);
 
-        if (!formating) {
-            formating = 'yyyy-MM-dd HH:mm';
+        if (!formatting) {
+            formatting = 'yyyy-MM-dd HH:mm';
         }
 
-        return this.datepipe.transform(dt, formating);
+        return this.datepipe.transform(dt, formatting);
     }
 
     /**
@@ -62,8 +62,8 @@ export class HelpersService {
     }
 
     /**
-     * Check is cuurent user admin
-     * @returns boolean Is current user admin
+     * Check if current user is admin
+     * @returns boolean If current user is admin
      */
     isAdmin(): boolean {
         return this.cookieService.get('auction_role') == 'admin';
@@ -72,7 +72,7 @@ export class HelpersService {
     /**
      * Validator for input component. It allows only numbers
      * @param  {} event
-     * @returns boolean Is it number
+     * @returns boolean Is it a number
      */
     numberOnly(event): boolean {
         const charCode = (event.which) ? event.which : event.keyCode;

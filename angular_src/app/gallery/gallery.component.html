@@ -27,7 +27,7 @@
     <div class="clearfix"></div>
 </div>
 
-<div *ngIf="mode == 'item_view'">
+<div *ngIf="mode == mainView.Item">
     <item-card
         [item_id]="selectedItem.id"
         [edit_mode]="false"
