@@ -6,7 +6,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from .auction import AuctionItem, Authorization, AuctionList
 from .models import Item
-from .deploy_data import deploy_data
+from .deploy_db import deploy_data
 
 
 def items_view(request):

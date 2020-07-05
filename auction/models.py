@@ -10,7 +10,7 @@ class Item(models.Model):
     def __str__(self):
         return self.title
 
-    title = models.CharField(max_length=255)
+    title = models.TextField()
     create_dt = models.DateTimeField(
         null=False, default=timezone.now, verbose_name='Created at'
         )
@@ -20,14 +20,12 @@ class Item(models.Model):
     price = models.IntegerField(
         default=0, verbose_name='Price, $'
         )
-    description = models.CharField(
-        max_length=255, null=True, verbose_name='Description'
-        )
+    description = models.TextField(null=True, verbose_name='Description')
 
 
 class Bid(models.Model):
     """Bid model."""
-    user_name = models.CharField(max_length=255)
+    user_name = models.TextField()
     bid_dt = models.DateTimeField(null=False, default=timezone.now, verbose_name='Set at')
     item_id = models.ForeignKey(
         Item, models.CASCADE, null=False, verbose_name='Item title'
@@ -48,4 +46,4 @@ post_save.connect(post_save_update_item_price, sender=Bid)
 
 class DeployInfo(models.Model):
     """"""
-    deploy_name = models.CharField(null=True)
+    deploy_name = models.TextField(null=True)
