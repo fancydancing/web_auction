@@ -1,14 +1,11 @@
-from .models import DeployInfo, Bid, Item
+from .models import DeployInfo
 from django.db import connection
 
 
 def deploy_data():
     deploy_qs = DeployInfo.objects.filter(deploy_name='initial')
     if len(deploy_qs) > 0:
-        DeployInfo.objects.all().delete()
-        Bid.objects.all().delete()
-        Item.objects.all().delete()
-        #return
+        return
 
     sql_str = """
 INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (1, 'admin', '2020-07-01 17:29:37.486479+00', 5, 2);
