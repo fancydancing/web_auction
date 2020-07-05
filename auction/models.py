@@ -45,3 +45,7 @@ def post_save_update_item_price(sender, instance, *args, **kwargs):
         item.save()
 
 post_save.connect(post_save_update_item_price, sender=Bid)
+
+class DeployInfo(models.Model):
+    """"""
+    deploy_name = models.CharField(null=True)

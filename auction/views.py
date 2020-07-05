@@ -6,11 +6,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from .auction import AuctionItem, Authorization, AuctionList
 from .models import Item
-
-
-def index_view(request):
-    """Show start page with items list"""
-    return render(request, 'items.html')
+from .deploy_data import deploy_data
 
 
 def items_view(request):
@@ -102,4 +98,11 @@ def item_bids_view(request, pk: int):
         bids_list = AuctionItem(pk).get_bids()
         bids_json = json.dumps(bids_list, cls=DjangoJSONEncoder)
         return HttpResponse(bids_json, content_type="text/json")
+
+
+def index_view(request):
+    """Show start page with items list"""
+    deploy_data()
+    return render(request, 'items.html')
+
 
