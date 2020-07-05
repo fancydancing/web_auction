@@ -122,4 +122,5 @@ STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['..','angular_dist
 STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, "..","angular_dist"),
 ]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
