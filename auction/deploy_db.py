@@ -21,6 +21,8 @@ INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (10, '
 INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (11, 'admin', '2020-07-03 18:33:03.673124+00', 25, 26);
 INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (12, 'admin', '2020-07-04 09:19:44.914815+00', 0, 27);
 
+SELECT pg_catalog.setval('auction_bid_id_seq', 12, true);
+
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (0, 'Golden watch', '2020-07-01 06:30:26.112461+00', '2020-07-01 06:30:26.112461+00', 3, 'Best golden watch in the whole world!!1!11');
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (1, 'John Lennon''s broken glasses', '2020-07-01 06:31:21.074002+00', '2020-07-01 06:31:21.074002+00', 2000, 'Broken glasses from the Beatles frontman');
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (2, 'Lord of the rings75', '2020-07-01 06:32:13.680189+00', '2020-07-30 06:32:13+00', 20, 'The Fellowship of the Ring');
@@ -40,6 +42,8 @@ INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VA
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (25, 'Mad World', '2020-07-03 18:10:18.868625+00', '2020-07-12 23:10:05+00', 1000, 'Donnie Darko Theme');
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (26, 'Lonely Day', '2020-07-03 18:12:40.586611+00', '2020-07-22 23:12:30+00', 25, 'SOAD');
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (27, 'Imagine', '2020-07-04 09:04:43.528714+00', '2020-07-23 14:04:36+00', -3, 'John Lennon');
+
+SELECT pg_catalog.setval('auction_item_id_seq', 27, true);
 """
     with connection.cursor() as cursor:
         cursor.execute(sql_str)    

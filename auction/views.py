@@ -9,6 +9,28 @@ from .models import Item
 from .deploy_db import deploy_data
 
 
+def add_item(request) -> HttpResponse:
+    data = json.loads(request.body.decode('utf-8'))
+    params = ['title', 'description', 'close_dt', 'price']
+    missing_params = [p for p in params if p not in data]
+
+    if len(missing_params) > 0:
+        result = {'result': False, 'msg': 'Missing parameters: ' + ', '.join(missing_params)}
+    elif data['price'] <= 0:
+        result = {'result': False, 'msg': 'Price must be greater than 0.'}
+    else:
+        new_id = AuctionItem().add(data)
+        result = {'result': True, 'id': new_id}
+
+    return HttpResponse(json.dumps(result), content_type="text/json")
+
+
+def get_items_list(request) -> HttpResponse:
+    items_list = AuctionList(request.GET).get_list()
+    items_json = json.dumps(items_list)
+    return HttpResponse(items_json, content_type="text/json")
+
+
 def items_view(request):
     """
     Operations with items depending on HTTP method.
@@ -17,23 +39,9 @@ def items_view(request):
     GET: return a list of all items
     """
     if request.method == 'POST':
-        data = json.loads(request.body.decode('utf-8'))
-        params = ['title', 'description', 'close_dt', 'price']
-        missing_params = [p for p in params if p not in data]
-        if len(missing_params) > 0:
-            result = {'result': False, 'msg': 'Missing parameters: ' + ', '.join(missing_params)}
-            return HttpResponse(json.dumps(result), content_type="text/json")
-
-        if data['price'] <= 0:
-            result = {'result': False, 'msg': 'Price must be greater than 0.'}
-            return HttpResponse(json.dumps(result), content_type="text/json")
-        new_id = AuctionItem().add(data)
-        result = {'result': True, 'id': new_id}
-        return HttpResponse(json.dumps(result), content_type="text/json")
+        return add_item(request)
     else:
-        items_list = AuctionList().get_list(request.GET)
-        items_json = json.dumps(items_list, cls=DjangoJSONEncoder)
-        return HttpResponse(items_json, content_type="text/json")
+        return get_items_list(request)
 
 
 def item_info_view(request, pk):
@@ -98,6 +106,7 @@ def item_bids_view(request, pk: int):
         bids_list = AuctionItem(pk).get_bids()
         bids_json = json.dumps(bids_list, cls=DjangoJSONEncoder)
         return HttpResponse(bids_json, content_type="text/json")
+
 
 
 def index_view(request):
