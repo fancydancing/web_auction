@@ -5,10 +5,10 @@ import random
 
 def deploy_data():
     deploy_qs = DeployInfo.objects.filter(deploy_name='initial')
-    if len(deploy_qs) > 0:
-        DeployInfo.objects.all().delete()
-        Bid.objects.all().delete()
-        Item.objects.all().delete()
+    # if len(deploy_qs) > 0:
+    DeployInfo.objects.all().delete()
+    Bid.objects.all().delete()
+    Item.objects.all().delete()
         #return
 
     sql_str = """
