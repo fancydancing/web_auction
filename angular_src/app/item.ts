@@ -1,11 +1,11 @@
 export interface AucItem {
     id?: number;
-    title: string;
+    title?: string;
 
-    description: string;
+    description?: string;
 
     // Item current price (max bid)
-    price: number;
+    price?: number;
 
     // Item creation epoch time
     create_dt?: number;
@@ -22,6 +22,21 @@ export interface AucItems {
     total_count?: number;
 }
 
+export interface Bid {
+    // Bid unique id
+    id?: number;
+
+    // Bid price
+    price: number;
+
+    // User name of bid
+    user_name: string;
+
+    // Epoch datetime of bid creation
+    bid_dt: number;
+}
+
+
 export interface ServerResponse {
     // True - success
     // False - Fail
@@ -29,4 +44,20 @@ export interface ServerResponse {
 
     // Error message
     msg?: string;
+}
+
+export enum MainView {
+    List = 'list_view', // show list of items
+    Item = 'item_view', // show item card
+    ItemEdit = 'item_edit', // show item card in edit mode
+    ItemAddNew = 'add_new_item' // show new empty item card in edit mode
+}
+
+export enum ItemCardEvent {
+    // Events from card to parent list
+
+    NewItemCreated = 'new_item_created',
+    ItemCardClosed = 'item_card_closed',
+    ItemUpdated = 'item_updated',
+    ItemNotFound = 'item_not_found', // show dialog: item not found
 }

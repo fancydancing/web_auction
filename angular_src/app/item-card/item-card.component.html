@@ -18,7 +18,7 @@
         <span>Time left: </span>
         <span
             *ngIf="time_left_days > 0"
-            style="margin-right: 10px;"
+            class="tile-left-days"
         >{{ time_left_days }} days</span>
         <countdown [config]="{leftTime: left_time, format: 'HH:mm:ss'}"></countdown>
     </div>
@@ -81,6 +81,7 @@
             <mat-label>Price</mat-label>
             <input
                 matInput
+                [readonly]="bids.length > 0"
                 type="number"
                 required
                 class="example-right-align"
@@ -104,6 +105,7 @@
             <mat-label>Close date</mat-label>
             <input
                 matInput
+                [disabled]="bids.length > 0"
                 [owlDateTime]="dt1"
                 [owlDateTimeTrigger]="dt1"
                 [owlDateTimeFilter]="myFilter"
@@ -111,7 +113,7 @@
                 [(ngModel)]="close_dt"
                 formControlName="closedtInput"
             >
-            <owl-date-time #dt1></owl-date-time>
+            <owl-date-time #dt1 [disabled]="bids.length > 0"></owl-date-time>
         </mat-form-field>
 
         <br />
@@ -159,7 +161,7 @@
         </form>
     </div>
 
-    <h2 *ngIf="!edit_mode" class="mat-h2" style="margin-bottom: 0px;">Recent bids:</h2>
+    <h2 *ngIf="!edit_mode" class="mat-h2 recent-bids">Recent bids:</h2>
 
     <table
         *ngIf="!edit_mode"
@@ -190,3 +192,8 @@
         <tr mat-row *matRowDef="let row; columns: bidsDisplayedColumns;"></tr>
     </table>
 </div>
+
+<alert-dialog
+    [state]="alertDialog.state"
+    (alertDialogEvent)="alertDialog.onAlertDialogEvent($event)"
+></alert-dialog>

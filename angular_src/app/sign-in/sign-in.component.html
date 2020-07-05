@@ -17,3 +17,8 @@
 </div>
 
 
+<alert-dialog
+    [state]="alertDialog.state"
+    (alertDialogEvent)="alertDialog.onAlertDialogEvent($event)"
+></alert-dialog>
+

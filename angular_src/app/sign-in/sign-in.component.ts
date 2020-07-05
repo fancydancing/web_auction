@@ -1,6 +1,7 @@
 import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { RpcService } from '../rpc/rpc.service';
 import { CookieService } from 'ngx-cookie-service';
+import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
 
 
 @Component({
@@ -12,9 +13,14 @@ export class SignInComponent implements OnInit {
     login: string;
     password: string;
 
+    alertDialog: AlertDialogState = new AlertDialogState();
+
     @Output() signInEvent: EventEmitter<string> = new EventEmitter<string>();
 
-    constructor(private rpcService: RpcService, private cookieService: CookieService) { }
+    constructor(
+        private rpcService: RpcService,
+        private cookieService: CookieService
+    ) { }
 
     ngOnInit() {
 
@@ -22,7 +28,7 @@ export class SignInComponent implements OnInit {
 
     signIn(): void {
         if (!this.login || !this.password) {
-            alert('Empty login or password');
+            this.alertDialog.open('Empty login or password');
             return;
         }
 
@@ -36,7 +42,7 @@ export class SignInComponent implements OnInit {
             this.cookieService.set('auction_role', res.role);
             this.signInEvent.emit('logged');
         } else {
-            alert('Login or Password is incorrect');
+            this.alertDialog.open('Login or Password is incorrect');
         }
     }
 

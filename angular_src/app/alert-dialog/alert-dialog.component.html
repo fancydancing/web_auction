@@ -1,0 +1,21 @@
+<div
+    *ngIf="state.showState"
+    class="alert-background"
+>
+</div>
+<div
+    *ngIf="state.showState"
+    class="alert-center"
+>
+    <h4>{{ state.msg }}</h4>
+
+    <br />
+
+    <div class="alert-dialog-warn-button">
+        <button
+            (click)="close()"
+            mat-raised-button
+            color="warn"
+            >Ok</button>
+    </div>
+</div>

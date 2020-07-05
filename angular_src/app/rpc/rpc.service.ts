@@ -6,14 +6,11 @@ import { CookieService } from 'ngx-cookie-service';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { AucItem, AucItems, ServerResponse } from '../item';
-import { Bid } from '../bid';
+import { AucItem, AucItems, ServerResponse, Bid } from '../item';
 
 
 @Injectable({ providedIn: 'root' })
 export class RpcService {
-
-    private itemsUrl = 'api/items';
 
     httpOptions = {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -21,6 +18,11 @@ export class RpcService {
 
     constructor(private http: HttpClient, private cookieService: CookieService) { }
 
+
+    /**
+     * Get items from backend
+     * @param params Set of filters
+     */
     getItems(params): Observable<AucItems> {
         let ps = {
             'page': params.page ? params.page : 0,
@@ -37,12 +39,17 @@ export class RpcService {
             ps['search_string'] = params.search_string;
         }
 
-        return this.http.get<AucItems>(this.itemsUrl, { params: ps })
+        let itemsUrl = 'api/items';
+        return this.http.get<AucItems>(itemsUrl, { params: ps })
             .pipe(
                 catchError(this.handleError<AucItems>('getItems', {}))
             );
     }
 
+    /**
+     * Get bids list of item from backend
+     * @param item_id Item id
+     */
     getBids(item_id: Number): Observable<Bid[]> {
         const url = `api/items/${item_id}/bids`
 
@@ -52,7 +59,10 @@ export class RpcService {
             );
     }
 
-
+    /**
+     * Get item from backend
+     * @param item_id Item id
+     */
     getItem(item_id: Number): Observable<AucItem> {
         const url = `api/items/${item_id}`;
         return this.http.get<AucItem>(url)
@@ -61,6 +71,10 @@ export class RpcService {
             );
     }
 
+    /**
+     * Add new item to backend
+     * @param item
+     */
     addItem(item: AucItem): Observable<{}> {
         const url = 'api/items';
         return this.http.post(url, item)
@@ -84,6 +98,10 @@ export class RpcService {
             );
     }
 
+    /**
+     * Update item
+     * @param item Item data
+     */
     updateItem(item: AucItem): Observable<{}> {
         const url = 'api/items/' + item.id.toString(10);
         return this.http.put(url, item, this.httpOptions)
@@ -92,6 +110,10 @@ export class RpcService {
             );
     }
 
+    /**
+     * Delete item
+     * @param item_id Item id
+     */
     deleteItem(item_id: number): Observable<{}> {
         const url = `api/items/${item_id}`;
         return this.http.delete(url, this.httpOptions)
@@ -100,6 +122,11 @@ export class RpcService {
             );
     }
 
+    /**
+     * Sign in attempt
+     * @param login Login
+     * @param password Password
+     */
     signIn(login: String, password: String): Observable<{}> {
         const url = 'api/sign_in';
         return this.http.post(url, {login: login, password: password})
@@ -111,12 +138,12 @@ export class RpcService {
     /**
      * Handle Http operation that failed.
      * Let the app continue.
-     * @param operation - name of the operation that failed
-     * @param result - optional value to return as the observable result
+     * @param operation name of the operation that failed
+     * @param result optional value to return as the observable result
      */
     private handleError<T>(operation = 'operation', result?: T) {
         return (error: any): Observable<T> => {
-            console.error(error); // log to console
+            console.error(error);
 
             // Let the app keep running by returning an empty result.
             return of(result as T);

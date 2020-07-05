@@ -25,6 +25,8 @@ export class AppComponent implements OnInit {
      */
     onSignInEvent(ev: string) {
         if (ev = 'logged') {
+            this.is_admin = this.helpersService.isAdmin();
+
             // Switch from auth form to content
             this.logged = true;
         }

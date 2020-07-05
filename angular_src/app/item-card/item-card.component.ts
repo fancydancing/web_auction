@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, EventEmitter,  Output } from '@angular/core';
-import { AucItem, ServerResponse } from '../item';
-import { Bid } from '../bid';
+import { AucItem, Bid, ServerResponse, ItemCardEvent } from '../item';
+import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
 
@@ -24,7 +24,10 @@ export class ItemCardComponent implements OnInit {
     @Input() edit_mode: boolean;
 
     // Send events for parent list for closing card and updating list
-    @Output() itemCardEvent: EventEmitter<string> = new EventEmitter<string>();
+    @Output() itemCardEvent: EventEmitter<ItemCardEvent> = new EventEmitter<ItemCardEvent>();
+
+    // Alert dialog state
+    alertDialog: AlertDialogState = new AlertDialogState();
 
     // List of bids
     bids: Bid[] = [];
@@ -45,7 +48,7 @@ export class ItemCardComponent implements OnInit {
     time_left_days: number;
 
     // Columns of bids table
-    bidsDisplayedColumns: string[] = ['user_name', 'price', 'date']; //
+    bidsDisplayedColumns: string[] = ['user_name', 'price', 'date'];
 
     // Validators for title
     titleFormControl = new FormControl('', [
@@ -55,19 +58,21 @@ export class ItemCardComponent implements OnInit {
     // Validators for price
     priceFormControl = new FormControl('', [
         Validators.required,
+        Validators.min(0),
         Validators.max(100000)
     ]);
 
     // Validators for new bid
     bidFormControl = new FormControl('', [
         Validators.required,
+        Validators.min(0),
         Validators.max(100000)
     ]);
 
     // Form for editing item
     form: FormGroup;
 
-    // Form for submiting new bid
+    // Form for submitting new bid
     formBid: FormGroup;
 
     constructor(
@@ -81,14 +86,25 @@ export class ItemCardComponent implements OnInit {
 
         // Forms config. Validators setup
         this.form = this.formBuilder.group({
-            titleInput: [null, Validators.required],
-            descriptionInput: [null, Validators.required],
-            priceInput: [Validators.required, Validators.max(100000)],
-            closedtInput: [null, Validators.required]
+            titleInput: [null, Validators.compose([Validators.required])],
+            descriptionInput: [null, Validators.compose([Validators.required])],
+            priceInput: [
+                null,
+                Validators.compose([
+                    Validators.required,
+                    Validators.min(0),
+                    Validators.max(100000)
+                ])
+            ],
+            closedtInput: [null, Validators.compose([Validators.required])]
         });
 
         this.formBid = this.formBuilder.group({
-            bidInput: [Validators.required, Validators.max(100000)],
+            bidInput: [null, Validators.compose([
+                Validators.required,
+                Validators.min(0),
+                Validators.max(100000)
+            ])],
         });
 
     }
@@ -113,6 +129,12 @@ export class ItemCardComponent implements OnInit {
      * @param  {AucItem} item Auction item from backend
      */
     getItemHandler(item: AucItem) {
+        if (!item || !item.id) {
+            this.item = {};
+            this.itemCardEvent.emit(ItemCardEvent.ItemNotFound);
+            return;
+        }
+
         this.item = item;
         this.bid_price = null;
 
@@ -135,13 +157,13 @@ export class ItemCardComponent implements OnInit {
         }
 
         if (!this.close_dt) {
-            alert('You have to choose a time for closing the lot.');
+            this.alertDialog.open('You have to choose a time for closing the lot.');
             return;
         }
         this.item.close_dt = this.helpersService.getEpochFromDatetime(this.close_dt);
         this.rpcService.addItem(this.item)
             .subscribe(
-                () => this.itemCardEvent.emit('new_item_created')
+                () => this.itemCardEvent.emit(ItemCardEvent.NewItemCreated)
             );
     }
 
@@ -157,7 +179,7 @@ export class ItemCardComponent implements OnInit {
         this.item.close_dt = this.helpersService.getEpochFromDatetime(this.close_dt);
         this.rpcService.updateItem(this.item)
             .subscribe(
-                () => this.itemCardEvent.emit('item_updated')
+                () => this.itemCardEvent.emit(ItemCardEvent.ItemUpdated)
             );
     }
 
@@ -177,7 +199,7 @@ export class ItemCardComponent implements OnInit {
     }
 
     /**
-     * Filter for date picker. It allows to choose only datetime in future
+     * Filter for date picker. It allows to choose datetime only in future
      * @param d Date for datetime picker
      */
     myFilter(d: Date): boolean {
@@ -189,7 +211,7 @@ export class ItemCardComponent implements OnInit {
      * Close card and back to listview
      */
     closeItemCard(): void {
-        this.itemCardEvent.emit('item_card_closed');
+        this.itemCardEvent.emit(ItemCardEvent.ItemCardClosed);
     }
 
     /**
@@ -206,12 +228,12 @@ export class ItemCardComponent implements OnInit {
         }
 
         if (this.bids.length > 0 && this.bids[0].price >= this.bid_price) {
-            alert('You have to make a higher bid.');
+            this.alertDialog.open('You have to make a higher bid.');
             return;
         }
 
         if (this.bids.length > 0 && this.bids[0].user_name == this.helpersService.getUserName()) {
-            alert('Your bid is already the highest.');
+            this.alertDialog.open('Your bid is already the highest.');
             return;
         }
 
@@ -221,11 +243,11 @@ export class ItemCardComponent implements OnInit {
 
     /**
      * Handle submit bid result. Updating card after every attempt
-     * @param res Result of submiting bid
+     * @param res Result of submitting bid
      */
     makeBidHandler(res: ServerResponse) {
         if (!res.result) {
-            alert(res.msg);
+            this.alertDialog.open(res.msg);
         }
 
         this.updateCard();

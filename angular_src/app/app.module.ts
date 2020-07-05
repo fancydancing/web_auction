@@ -23,6 +23,7 @@ import { ItemsListComponent } from './items-list/items-list.component';
 import { ItemCardComponent } from './item-card/item-card.component';
 import { SignInComponent } from './sign-in/sign-in.component';
 import { GalleryComponent } from './gallery/gallery.component';
+import { AlertDialogComponent } from './alert-dialog/alert-dialog.component';
 
 
 @NgModule({
@@ -31,7 +32,8 @@ import { GalleryComponent } from './gallery/gallery.component';
     ItemsListComponent,
     ItemCardComponent,
     SignInComponent,
-    GalleryComponent
+    GalleryComponent,
+    AlertDialogComponent
   ],
   imports: [
     BrowserModule,
