@@ -22,7 +22,7 @@ LOGIN_PASS = {
 class AuctionItem():
     def __init__(self, item_id=None):
         self.item = None
-        if item_id:
+        if item_id is not None:
             self.item = get_object_or_404(Item, pk=item_id)
             if not self.item:
                 raise Exception('Item not found.')
@@ -155,7 +155,7 @@ class AuctionList():
         """
 
         items_qs = Item.objects.all()
-        if self.search_string:
+        if self.search_string is not None:
             items_qs = items_qs.filter(
                 Q(title__icontains=self.search_string) |
                 Q(description__icontains=self.search_string)
@@ -164,12 +164,12 @@ class AuctionList():
         if not self.show_closed:
             items_qs = items_qs.filter(close_dt__gt=timezone.now())
 
-        if self.sort:
+        if self.sort is not None:
             sorting_column = ('' if self.order == 'asc' else '-') + self.sort
             items_qs = items_qs.order_by(sorting_column)
 
         total_count = items_qs.count()
-        if self.page_size != ALL_ITEMS and self.page_number:
+        if self.page_size != ALL_ITEMS and self.page_number is not None:
             paginator = Paginator(items_qs, self.page_size)
             # Zero page in Django is the last for the interface
             inverted_page = paginator.num_pages - int(self.page_number) - 1
