@@ -1,47 +1,49 @@
-from .models import DeployInfo
+from .models import DeployInfo, Item, Bid
 from django.db import connection
+import random
 
 
 def deploy_data():
     deploy_qs = DeployInfo.objects.filter(deploy_name='initial')
     if len(deploy_qs) > 0:
-        return
+        DeployInfo.objects.all().delete()
+        Bid.objects.all().delete()
+        Item.objects.all().delete()
+        # return
 
     sql_str = """
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (1, 'admin', '2020-07-01 17:29:37.486479+00', 5, 2);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (2, 'admin', '2020-07-02 05:51:37.621245+00', 10, 2);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (3, 'admin', '2020-07-02 06:03:56.217496+00', 1000, 1);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (4, 'user', '2020-07-02 07:11:50.330112+00', 9, 2);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (1, 'admin', '2020-07-01 17:29:37.486479+00', 200, 2);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (3, 'admin', '2020-07-02 06:03:56.217496+00', 2100, 1);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (4, 'user', '2020-07-02 07:11:50.330112+00', 215, 2);
 INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (5, 'admin', '2020-07-02 08:06:45.802964+00', 200, 11);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (6, 'user', '2020-07-03 01:48:11.741712+00', 3, 16);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (7, 'user2', '2020-07-03 02:25:27.263233+00', 12, 20);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (8, 'user2', '2020-07-03 02:27:54.529646+00', 20, 23);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (9, 'user2', '2020-07-03 09:35:49.158023+00', 11, 21);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (10, 'user2', '2020-07-03 09:38:43.374303+00', 350, 15);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (11, 'admin', '2020-07-03 18:33:03.673124+00', 25, 26);
-INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (12, 'admin', '2020-07-04 09:19:44.914815+00', 0, 27);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (6, 'user', '2020-07-03 01:48:11.741712+00', 1400, 14);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (7, 'user2', '2020-07-03 02:25:27.263233+00', 4100, 20);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (8, 'user2', '2020-07-03 02:27:54.529646+00', 3800, 23);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (9, 'user2', '2020-07-03 09:35:49.158023+00', 600, 21);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (10, 'user2', '2020-07-03 09:38:43.374303+00', 1150, 15);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (11, 'admin', '2020-07-03 18:33:03.673124+00', 2200, 26);
+INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (12, 'admin', '2020-07-04 09:19:44.914815+00', 2050, 27);
 
 SELECT pg_catalog.setval('auction_bid_id_seq', 12, true);
 
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (0, 'Golden watch', '2020-07-01 06:30:26.112461+00', '2020-07-01 06:30:26.112461+00', 3, 'Best golden watch in the whole world!!1!11');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (1, 'John Lennon''s broken glasses', '2020-07-01 06:31:21.074002+00', '2020-07-01 06:31:21.074002+00', 2000, 'Broken glasses from the Beatles frontman');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (2, 'Lord of the rings75', '2020-07-01 06:32:13.680189+00', '2020-07-30 06:32:13+00', 20, 'The Fellowship of the Ring');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (11, 'Harry Potter222', '2020-07-02 07:55:14.019906+00', '2012-09-13 11:22:50+00', 101, 'by J K Rowling');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (12, 'Alphabet 123', '2020-07-02 08:24:29.491926+00', '2012-09-13 11:22:50+00', 123, 'junior and senior');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (13, 'Ololo', '2020-07-02 08:24:49.198837+00', '2012-09-13 11:22:50+00', 14, 'ewrv mfegl');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (14, 'Voyna i mir', '2020-07-02 08:25:17.47955+00', '2012-09-13 11:22:50+00', 500, 'Tolstoy author edition');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (16, 'Proschanie c Materoy', '2020-07-02 08:26:13.451883+00', '2012-09-13 11:22:50+00', 1, 'dont remember');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (17, '10th Kingdom', '2020-07-02 08:26:36.98427+00', '2012-09-13 11:22:50+00', 12, 'desyatoe');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (18, 'Buratino', '2020-07-02 08:28:14.558242+00', '2012-09-13 11:22:50+00', 122, 'Alexey Tolstoy');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (20, 'Will delete', '2020-07-02 12:26:23.740808+00', '2020-07-21 17:26:10+00', 10, 'today tomorrow always');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (22, 'Check', '2020-07-02 12:32:31.646369+00', '2020-07-13 17:32:23+00', 234, 'chekersson');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (23, 'Moby Dick', '2020-07-02 15:15:58.211817+00', '2020-07-23 20:15:32+00', 20, 'Melvill Hall');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (21, 'Will delete', '2020-07-02 12:26:23.327433+00', '2020-07-21 17:26:10+00', 11, 'today tomorrow always');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (15, 'Master & Margarita', '2020-07-02 08:25:48.059775+00', '2012-09-13 11:22:50+00', 350, 'Bulghakov');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (24, 'Livin'' In The Ghost Town', '2020-07-03 18:02:24.937743+00', '2020-07-08 23:02:14+00', 356, 'Rolling Stones');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (25, 'Mad World', '2020-07-03 18:10:18.868625+00', '2020-07-12 23:10:05+00', 1000, 'Donnie Darko Theme');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (26, 'Lonely Day', '2020-07-03 18:12:40.586611+00', '2020-07-22 23:12:30+00', 25, 'SOAD');
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (27, 'Imagine', '2020-07-04 09:04:43.528714+00', '2020-07-23 14:04:36+00', -3, 'John Lennon');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (1, 'John Lennon''s broken glasses', '2020-07-01 06:31:21.074002+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2100, 'Broken glasses from the Beatles frontman');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (2, 'Vintage Louis Vuitton Makeup Case', '2020-07-01 06:32:13.680189+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 215, 'Hard case cosmetic suitcase with Monogram Canvas coating, brass fittings, leather interior, 5 leather loops for bottles. Key attached. Very nice receipt, slight traces of age. 35,5x21,5x26cm.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (11, 'Link bracelet with rubies, rose cut diamonds and enamel', '2020-07-02 07:55:14.019906+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 200, 'India, Rajasthan, 1850 yellow gold 22 ct., tested. Translucent enamel in blue, red, green, and white hues. 48 tiny rose cut diamonds, together CA. 0,30 ct. 12 rubies, round cabochon cut, together approx 0,45 ct. L. approx. 19 cm, width approx 1.5 cm. About 54,6 g.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (12, 'Pierced bowl made of silver with a dragon decor', '2020-07-02 08:24:29.491926+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 1300, 'Crafted shell made of silver, pierced with dragon decoration and Voalkartuschen. CHINA, u. a. hallmarked WH (Wang Hing) 90, late Qing dynasty. B. 25.1 cm/734 g');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (13, 'Set for spices "Atkin Brothers". England, crystal, silver, handmade, 1853-1925 years.', '2020-07-02 08:24:49.198837+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 120, 'Serving set for spices of the Victorian era. Containers for spices is made of crystal glass with low lead content and faceted by hand. Base, spoon and lid Nickel alloy plated with 925 silver.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (14, 'Porcelain figurine "Parrot". Germany, Sitzendorf, handmade, 1918-1949gg.', '2020-07-02 08:25:17.47955+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 1400, 'Porcelain figurine of a parrot sitting on a tree. Completely handmade.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (16, 'Porcelain figurines "Henry VIII and his wives". Germany, Sitzendorf, handmade, 1918 - 1949 gg.', '2020-07-02 08:26:13.451883+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 1350, 'Full collection of seven porcelain figurines of Henry VIII and his wives. Completely handmade.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (17, 'Jug Wedgwood "Meander". Neo-classicism, England, biscuit porcelain, 1860-1891 years.', '2020-07-02 08:26:36.98427+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 160, 'Jug of porcelain Jasper with silver plated lid by the iconic British company Wedgwood. Fully handmade');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (18, 'Moscow. Cigarette case with niello, 84 sample.', '2020-07-02 08:28:14.558242+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 1000, 'Cigarette case depicting Moscow Kremlin.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (20, 'The sculpture "bear lying".', '2020-07-02 12:26:23.740808+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 4100, 'Russia, 19th century. Bronze, casting, embossing, Druse quartz.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (22, 'Figurine "Chick". China, enamel, handmade', '2020-07-02 12:32:31.646369+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 80, 'Figurine chicken cloisonné enamel Cloisonne. Included - individual stand of lacquered wood. Handmade.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (23, 'Saber Dragoon officer sample 1881/1909 year', '2020-07-02 15:15:58.211817+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 3800, 'Efes consists of a handle and brass guard. The handle is wooden, sometimes ebony, with deep transverse grooves and thickening in the middle part. At the top on the handle, notched brass bushing, on top of her oval head is in the form of a rosette.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (21, 'Porcelain composition "Pigeon mail", Germany, Sitzendorf, 19th century, handmade', '2020-07-02 12:26:23.327433+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 600, 'Porcelain figurine - a pair with the carrier pigeons. Completely handmade.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (15, 'Antique carafe, decanter, bottle, England, Glass, first half 20th century, handmade', '2020-07-02 08:25:48.059775+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 1150, 'Decanter for liqueurs and bitters. The vessel is decorated with patterns applied by engraving. Completely handmade.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (24, 'Decorative vase, rare technique of stained glass enamels', '2020-07-03 18:02:24.937743+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 277, 'Vase, made in a rare technique of stained enamel and Plique-à-jour (FR. "let in daylight"). It is a technique of enameling in which enamel is put in the cells, similar to cloisonne, the only difference is that uses a temporary basis, which after firing is dissolved by acid.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (25, 'Saucer for jewelry Wedgwood "Orchids". Neo-classicism, England, biscuit porcelain. 1974 - 1990', '2020-07-03 18:10:18.868625+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 49, 'Saucer for decorations of porcelain Jasper from the iconic British company Wedgwood in rare colors. All items are carved from porcelain by hand');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (26, 'Desktop device of "Horse"', '2020-07-03 18:12:40.586611+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2200, 'Desktop device of "Horse". Includes pencil holders, a box. there is a plaque with the inscription in Georgian, dated 1935.');
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VALUES (27, 'Fireplace set in the art Nouveau style', '2020-07-04 09:04:43.528714+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2050, 'Fireplace set, consisting of a clock and pair of vases. Items decorated with images of cyclamen and floral ornament in art Nouveau style. ');
 
 SELECT pg_catalog.setval('auction_item_id_seq', 27, true);
 """

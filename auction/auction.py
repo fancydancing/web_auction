@@ -141,8 +141,8 @@ class AuctionList():
         search_string: str - string to find in title or description
         show_closed: bool - show closed items or not
         """
-        self.page_number = data.get('page', 0)
-        self.page_size = data.get('page_size', 10)
+        self.page_number = int(data.get('page', 0))
+        self.page_size = int(data.get('page_size', 10))
         self.sort = data.get('sort', 'create_dt')
         self.order = data.get('order', 'asc')
         self.search_string = data.get('search_string', None)
@@ -153,6 +153,7 @@ class AuctionList():
         """
         Return a list of items.
         """
+
         items_qs = Item.objects.all()
         if self.search_string:
             items_qs = items_qs.filter(

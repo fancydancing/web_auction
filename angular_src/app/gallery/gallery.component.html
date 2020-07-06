@@ -12,13 +12,13 @@
                     <p>{{ item.description }}</p>
                 </mat-card-content>
                 <mat-card-actions class="gallery-action">
+                    <span class="gallery-price">${{ item.price }}</span>
                     <button
                         class="gallery-title-submit"
                         (click)="onSelect(item)"
                         mat-raised-button
                         color="primary"
-                    >Submit bid</button>
-                    <span class="gallery-price">${{ item.price }}</span>
+                    >Bid now</button>
                 </mat-card-actions>
             </mat-card>
         </div>
