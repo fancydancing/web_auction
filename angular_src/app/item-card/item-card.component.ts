@@ -117,6 +117,8 @@ export class ItemCardComponent implements OnInit {
             return;
         }
 
+        this.item = {};
+
         this.rpcService.getItem(this.item_id)
             .subscribe(item => this.getItemHandler(item));
 

@@ -390,12 +390,12 @@ function GalleryComponent_ng_template_1_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](10, "mat-card-actions", 7);
-    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](11, "button", 8);
-    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵlistener"]("click", function GalleryComponent_ng_template_1_Template_button_click_11_listener() { _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵrestoreView"](_r4); const item_r2 = ctx.$implicit; const ctx_r3 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"](); return ctx_r3.onSelect(item_r2); });
-    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtext"](12, "Submit bid");
+    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](11, "span", 8);
+    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtext"](12);
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](13, "span", 9);
-    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtext"](14);
+    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](13, "button", 9);
+    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵlistener"]("click", function GalleryComponent_ng_template_1_Template_button_click_13_listener() { _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵrestoreView"](_r4); const item_r2 = ctx.$implicit; const ctx_r3 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"](); return ctx_r3.onSelect(item_r2); });
+    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtext"](14, "Bid now");
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
@@ -409,7 +409,7 @@ function GalleryComponent_ng_template_1_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtextInterpolate1"](" ", ctx_r0.helpersService.getDateTimeFromEpoch(item_r2.create_dt), " ");
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](3);
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtextInterpolate"](item_r2.description);
-    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](5);
+    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](3);
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtextInterpolate1"]("$", item_r2.price, "");
 } }
 function GalleryComponent_div_3_Template(rf, ctx) { if (rf & 1) {
@@ -501,7 +501,7 @@ class GalleryComponent {
     }
 }
 GalleryComponent.ɵfac = function GalleryComponent_Factory(t) { return new (t || GalleryComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_rpc_rpc_service__WEBPACK_IMPORTED_MODULE_2__["RpcService"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_helpers_helpers_service__WEBPACK_IMPORTED_MODULE_3__["HelpersService"])); };
-GalleryComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineComponent"]({ type: GalleryComponent, selectors: [["gallery"]], decls: 4, vars: 4, consts: [["ngFor", "", 3, "ngForOf"], [1, "clearfix"], [4, "ngIf"], [1, "responsive"], [1, "example-card"], [1, "gallery-title"], [1, "gallery-desc"], [1, "gallery-action"], ["mat-raised-button", "", "color", "primary", 1, "gallery-title-submit", 3, "click"], [1, "gallery-price"], [3, "item_id", "edit_mode", "itemCardEvent"]], template: function GalleryComponent_Template(rf, ctx) { if (rf & 1) {
+GalleryComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineComponent"]({ type: GalleryComponent, selectors: [["gallery"]], decls: 4, vars: 4, consts: [["ngFor", "", 3, "ngForOf"], [1, "clearfix"], [4, "ngIf"], [1, "responsive"], [1, "example-card"], [1, "gallery-title"], [1, "gallery-desc"], [1, "gallery-action"], [1, "gallery-price"], ["mat-raised-button", "", "color", "primary", 1, "gallery-title-submit", 3, "click"], [3, "item_id", "edit_mode", "itemCardEvent"]], template: function GalleryComponent_Template(rf, ctx) { if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "div");
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtemplate"](1, GalleryComponent_ng_template_1_Template, 15, 4, "ng-template", 0);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelement"](2, "div", 1);
@@ -949,6 +949,7 @@ class ItemCardComponent {
         if (!this.item_id) {
             return;
         }
+        this.item = {};
         this.rpcService.getItem(this.item_id)
             .subscribe(item => this.getItemHandler(item));
         this.rpcService.getBids(this.item_id)
