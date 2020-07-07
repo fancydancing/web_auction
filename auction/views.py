@@ -26,7 +26,6 @@ def add_item(request) -> HttpResponse:
         new_id = AuctionItem().add(item_form.cleaned_data)
         result = {'result': True, 'id': new_id}
     else:
-        print(item_form.errors.as_data())
         result = {'result': False, 'msg': item_form.errors.as_data()}
 
     return HttpResponse(json.dumps(result), content_type='text/json')
@@ -76,12 +75,13 @@ def update_item(request, pk: int) -> HttpResponse:
         close_dt: int - new closing time
     """
     data = json.loads(request.body.decode('utf-8'))
-    # res = {}
-    if 'price' in data and data['price'] <= 0:
-        res = {'result': False, 'msg': 'Price must be greater than 0.'}
-    else:
+    item_form = ItemForm(data)
+    if item_form.is_valid():
         result = AuctionItem(pk).edit(data)
         res = {'result': result}
+    else:
+        res = {'result': False, 'msg': item_form.errors.as_data()}
+
     return HttpResponse(json.dumps(res), content_type='text/json')
 
 
