@@ -1,4 +1,4 @@
-from .models import DeployInfo, Item, Bid
+from .models import DeployInfo
 from django.db import connection
 import random
 

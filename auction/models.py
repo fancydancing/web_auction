@@ -36,7 +36,7 @@ class Bid(models.Model):
 
 
 def post_save_update_item_price(sender, instance, *args, **kwargs):
-    """Updating item price after new bid"""
+    """Updating item price after new bid."""
     if instance.item_id:
         item = instance.item_id
         item.price = instance.price
@@ -45,5 +45,5 @@ def post_save_update_item_price(sender, instance, *args, **kwargs):
 post_save.connect(post_save_update_item_price, sender=Bid)
 
 class DeployInfo(models.Model):
-    """"""
+    """Info about deployed DB data."""
     deploy_name = models.TextField(null=True)

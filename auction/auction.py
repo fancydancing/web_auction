@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from .models import Item, Bid
 from . import utils
 
+# Used to show all items without pagination
 ALL_ITEMS = -1
 
 # Users allowed to login
@@ -18,14 +19,11 @@ LOGIN_PASS = {
     }
 
 
-
 class AuctionItem():
     def __init__(self, item_id=None):
         self.item = None
         if item_id is not None:
             self.item = get_object_or_404(Item, pk=item_id)
-            if not self.item:
-                raise Exception('Item not found.')
 
     def add(self, data: dict) -> int:
         """
@@ -39,7 +37,6 @@ class AuctionItem():
         """
 
         data['close_dt'] = utils.from_epoch(data['close_dt'])
-
         new_item = Item.objects.create(**data)
         return new_item.id
 
@@ -62,14 +59,13 @@ class AuctionItem():
 
         return True
 
-
     def delete(self) -> bool:
-        """Delete an item"""
+        """Delete an item."""
         self.item.delete()
         return True
 
     def read(self) -> dict:
-        """Read an item"""
+        """Read an item."""
         return {
             'id': self.item.id,
             'title': self.item.title,
@@ -86,10 +82,10 @@ class AuctionItem():
         bids_list = []
         for bid in bids_qs:
             bids_list.append({
-                "id": bid.id,
-                "bid_dt": utils.to_epoch(bid.bid_dt),
-                "price": bid.price,
-                "user_name": bid.user_name
+                'id': bid.id,
+                'bid_dt': utils.to_epoch(bid.bid_dt),
+                'price': bid.price,
+                'user_name': bid.user_name
             })
 
         return bids_list
@@ -98,10 +94,10 @@ class AuctionItem():
         """
         Set a bid for an item.
 
-        [item:Item] - instance of Item
+        item: Item - instance of Item
         parameters in data:
-        [price:int] - bid value
-        [user_name:str] - user making a bid
+            price: int - bid value
+            user_name: str - user making a bid
         """
         price = data.get('price')
         user_name = data.get('user_name')
@@ -126,27 +122,27 @@ class AuctionItem():
 
         data['item_id'] = self.item
         new_bid = Bid.objects.create(**data)
-        result = {'result': True, 'id': new_bid.id}
-        return result
+        return {'result': True, 'id': new_bid.id}
 
 
 class AuctionList():
     def __init__(self, data: dict):
         """        
-        parameters in data:
-        page: int - number of page
-        page_size: int - size of page
-        sort: str - 'asc' or 'desc'
-        order: str - field name to sort on
-        search_string: str - string to find in title or description
-        show_closed: bool - show closed items or not
+        Constructor for AuctionList object.
+        Parameters in data:
+            page: int - number of page
+            page_size: int - size of page
+            sort: str - 'asc' or 'desc'
+            order: str - field name to sort on
+            search_string: str - string to find in title or description
+            show_closed: bool - show closed items or not
         """
-        self.page_number = int(data.get('page', 0))
-        self.page_size = int(data.get('page_size', 10))
-        self.sort = data.get('sort', 'create_dt')
-        self.order = data.get('order', 'asc')
-        self.search_string = data.get('search_string', None)
-        self.show_closed = data.get('show_closed', False)
+        self.page_number = data.get('page')
+        self.page_size = data.get('page_size')
+        self.sort = data.get('sort')
+        self.order = data.get('order')
+        self.search_string = data.get('search_string')
+        self.show_closed = data.get('show_closed')
 
 
     def get_list(self) -> list:
@@ -185,12 +181,10 @@ class AuctionList():
                 'close_dt': utils.to_epoch(item.close_dt),
                 'price': item.price,
             })
-        items_list = {
+        return {
             'items': items,
             'total_count': total_count
         }
-
-        return items_list
 
 
 class Authorization():

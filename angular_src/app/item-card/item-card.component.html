@@ -27,17 +27,21 @@
 
     <form class="example-form" [formGroup]="form">
 
-        <mat-form-field class="example-full-width">
+        <mat-form-field class="example-full-width item-title">
             <mat-label>Title</mat-label>
-            <input
+            <textarea
                 matInput
+                cdkTextareaAutosize
+                #autosize="cdkTextareaAutosize"
+                cdkAutosizeMinRows="1"
+                cdkAutosizeMaxRows="5"
                 placeholder="Title"
                 [(ngModel)]="item.title"
                 [readonly]="!edit_mode"
                 required
                 [formControl]="titleFormControl"
                 formControlName="titleInput"
-            >
+            ></textarea>
             <mat-error *ngIf="titleFormControl.hasError('required')">
                 Title is <strong>required</strong>
             </mat-error>
