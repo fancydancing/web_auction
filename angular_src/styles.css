@@ -79,6 +79,10 @@
     margin-bottom: 20px !important;
 }
 
+.item-title {
+    width: 400px;
+}
+
 .item-desc {
     width: 400px;
 }
