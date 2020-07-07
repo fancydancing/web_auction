@@ -43,5 +43,5 @@ $ docker-compose build
 $ docker-compose up
 ```
 
-6. Open ip address (from step 2) in browser with port 8000. For example, in Windows: `192.168.99.100:8000`
+6. Open ip address (from step 4) in browser with port 8000. For example, in Windows: `192.168.99.100:8000`
 
