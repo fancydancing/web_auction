@@ -18,6 +18,12 @@ services:
             - POSTGRES_USER=django_user
             - POSTGRES_PASSWORD=django_password
             - POSTGRES_DB=web_auction
+    redis:
+        image: "redis:alpine"
+        ports:
+            - 6379:6379
+        environment:
+            - REDIS_REPLICATION_MODE=master
 
 volumes:
     postgres_data:

@@ -64,7 +64,7 @@ def items_view(request) -> HttpResponse:
     else:
         return get_items_list(request)
 
-def update_item(request, pk: int) -> HttpResponse:  
+def update_item(request, pk: int) -> HttpResponse:
     """
     Update an item.
 

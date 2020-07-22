@@ -25,6 +25,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'auction',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,7 +62,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'web_auction.wsgi.application'
+ASGI_APPLICATION = "web_auction.routing.application"
 
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases

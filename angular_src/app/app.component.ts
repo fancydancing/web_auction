@@ -13,10 +13,25 @@ export class AppComponent implements OnInit {
     // Is current user admin
     is_admin: boolean = false;
 
+    chatSocket: WebSocket;
+
     constructor(public helpersService: HelpersService) { }
 
     ngOnInit() {
         this.is_admin = this.helpersService.isAdmin();
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/channel/'
+        );
+
+        chatSocket.onmessage = this.onWebSocketMsg;
+    }
+
+    onWebSocketMsg(e) {
+        let data = JSON.parse(e.data);
+        console.log(data.message);
     }
 
     /**
