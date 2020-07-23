@@ -102,6 +102,7 @@ class AuctionItem():
             price: int - bid value
             user_name: str - user making a bid
         """
+
         price = data.get('price')
         user_name = data.get('user_name')
 
@@ -125,6 +126,12 @@ class AuctionItem():
 
         data['item_id'] = self.item
         new_bid = Bid.objects.create(**data)
+
+        ws_send({
+            'item_id': self.item.id,
+            'event': 'new_bid'
+        })
+
         return {'result': True, 'id': new_bid.id}
 
 
@@ -195,7 +202,6 @@ class Authorization():
         username = data.get('login')
         password = data.get('password')
 
-        ws_send(username)
         task_send_email.delay(username)
 
         # Login/password check

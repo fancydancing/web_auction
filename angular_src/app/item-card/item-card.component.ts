@@ -3,6 +3,7 @@ import { AucItem, Bid, ServerResponse, ItemCardEvent } from '../item';
 import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
+import { CommunicationService } from '../communication/communication.service';
 
 import { FormControl, Validators } from '@angular/forms';
 import { FormGroup, FormBuilder } from '@angular/forms';
@@ -34,6 +35,8 @@ export class ItemCardComponent implements OnInit {
 
     // Field for submit new bid
     bid_price: number;
+
+    auto_bid: boolean = false;
 
     // Item close datetime
     close_dt: Date;
@@ -78,6 +81,7 @@ export class ItemCardComponent implements OnInit {
     constructor(
         private rpcService: RpcService,
         public helpersService: HelpersService,
+        public communicationService: CommunicationService,
         private formBuilder: FormBuilder
     ) { }
 
@@ -107,6 +111,11 @@ export class ItemCardComponent implements OnInit {
             ])],
         });
 
+        this.communicationService.serverMsgAnnounced$.subscribe(
+            msg => {
+                this.alertDialog.open(msg.item_id.toString());
+            }
+        );
     }
 
     /**
@@ -253,5 +262,10 @@ export class ItemCardComponent implements OnInit {
         }
 
         this.updateCard();
+    }
+
+    autoBidChange() {
+        this.rpcService.autoBid(this.item_id, this.auto_bid)
+            .subscribe(() => this.alertDialog.open('Auto bid enabled'));
     }
 }
