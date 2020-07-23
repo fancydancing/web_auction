@@ -7,9 +7,13 @@ services:
             - 8000:8000
         depends_on:
             - db
+            - redis
+            - celery_worker
         links:
             - db:db
         entrypoint: /opt/app/web_auction/entrypoint.sh
+        volumes:
+            - /opt/app/web_auction/auction/migrations
     db:
         image: postgres:12.0-alpine
         volumes:
@@ -24,6 +28,15 @@ services:
             - 6379:6379
         environment:
             - REDIS_REPLICATION_MODE=master
+    celery_worker:
+        build: .
+        command: celery -A web_auction worker -B -l INFO
+        ports: []
+        depends_on:
+            - db
+            - redis
+        links:
+            - db:db
 
 volumes:
     postgres_data:

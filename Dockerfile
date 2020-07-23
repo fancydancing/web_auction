@@ -6,6 +6,9 @@ RUN pip install django==2.0.4
 RUN pip install channels
 RUN pip install channels_redis
 
+RUN pip install celery
+RUN pip install redis
+
 RUN apt-get update && apt-get install -y postgresql-client
 
 # set environment variables

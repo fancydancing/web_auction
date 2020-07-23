@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from .models import Item, Bid
 from . import utils
 from .consumers import ws_send
+from .tasks import task_send_email
 
 
 # Used to show all items without pagination
@@ -195,6 +196,7 @@ class Authorization():
         password = data.get('password')
 
         ws_send(username)
+        task_send_email.delay(username)
 
         # Login/password check
         if username not in LOGIN_PASS or password != LOGIN_PASS[username]['password']:

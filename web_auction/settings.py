@@ -74,6 +74,11 @@ CHANNEL_LAYERS = {
     },
 }
 
+CELERY_BROKER_URL = 'redis://redis:6379'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
