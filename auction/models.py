@@ -21,6 +21,8 @@ class Item(models.Model):
         default=0, verbose_name='Price, $'
         )
     description = models.TextField(null=True, verbose_name='Description')
+    expired = models.BooleanField(null=False, default=False)
+    awarded_user = models.TextField(null=True, default='', verbose_name='User awarded')
 
 
 class Bid(models.Model):

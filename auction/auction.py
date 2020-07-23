@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404
 from .models import Item, Bid
 from . import utils
 from .consumers import ws_send
-from .tasks import task_send_email
 
 
 # Used to show all items without pagination
@@ -16,9 +15,9 @@ ALL_ITEMS = -1
 
 # Users allowed to login
 LOGIN_PASS = {
-    'admin': {'password': 'admin', 'role': 'admin'},
-    'user': {'password': 'user', 'role': 'user'},
-    'user2': {'password': 'user2', 'role': 'user'}
+    'admin': {'password': 'admin', 'role': 'admin', 'email': 'webauctiontesting+admin@gmail.com'},
+    'user': {'password': 'user', 'role': 'user', 'email': 'webauctiontesting+user@gmail.com'},
+    'user2': {'password': 'user2', 'role': 'user', 'email': 'webauctiontesting+user2@gmail.com'}
     }
 
 
@@ -208,3 +207,26 @@ class Authorization():
             role = LOGIN_PASS[username]['role']
 
         return {'result': res, 'login': username, 'role': role}
+
+
+def check_deadlines():
+    expired_items = Item.objects.filter(expired=False, close_dt__lte=timezone.now())
+
+    awards = []
+    for item in expired_items:
+        bids = Bid.objects.filter(item_id=item)
+        if len(bids) > 0:
+            latest_bid = bids.latest('bid_dt')
+            user_name = latest_bid.user_name
+            awards.append({'item': item.title,
+                           'user_name': latest_bid.user_name,
+                           'price': latest_bid.price,
+                           'email': LOGIN_PASS[latest_bid.user_name]['email']})
+        else:
+            user_name = None
+
+        item.awarded_user = user_name
+        item.expired = True
+        item.save()
+
+    return awards

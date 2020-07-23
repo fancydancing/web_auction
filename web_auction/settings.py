@@ -61,6 +61,16 @@ TEMPLATES = [
     },
 ]
 
+DEFAULT_FROM_EMAIL = 'webauctiontesting@mail.ru'
+SERVER_EMAIL = 'webauctiontesting@mail.ru'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'webauctiontesting@mail.ru'
+EMAIL_HOST_PASSWORD = '(FA[nh5;mf5t!KQ'
+
+
 WSGI_APPLICATION = 'web_auction.wsgi.application'
 ASGI_APPLICATION = "web_auction.routing.application"
 
