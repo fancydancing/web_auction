@@ -163,6 +163,12 @@
                 color="primary"
             >Submit bid</button>
         </form>
+        <br />
+        <mat-checkbox
+            class="example-margin"
+            [(ngModel)]="auto_bid"
+            (change)="autoBidChange()"
+        >Auto bid</mat-checkbox>
     </div>
 
     <h2 *ngIf="!edit_mode" class="mat-h2 recent-bids">Recent bids:</h2>

@@ -61,3 +61,9 @@ export enum ItemCardEvent {
     ItemUpdated = 'item_updated',
     ItemNotFound = 'item_not_found', // show dialog: item not found
 }
+
+export interface ServerMsg {
+    item_id?: number;
+
+    event?: string;
+}

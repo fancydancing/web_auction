@@ -17,6 +17,7 @@ import { MatIconModule } from '@angular/material/icon'
 import { MatSortModule } from '@angular/material/sort';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { AppComponent } from './app.component';
 import { ItemsListComponent } from './items-list/items-list.component';
@@ -55,7 +56,8 @@ import { AlertDialogComponent } from './alert-dialog/alert-dialog.component';
     MatIconModule,
     MatSortModule,
     MatPaginatorModule,
-    MatCardModule
+    MatCardModule,
+    MatCheckboxModule
   ],
   providers: [DatePipe, CookieService],
   bootstrap: [AppComponent]

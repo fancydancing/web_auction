@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HelpersService } from './helpers/helpers.service';
+import { CommunicationService } from './communication/communication.service';
+
 
 @Component({
   selector: 'app-root',
@@ -15,7 +17,10 @@ export class AppComponent implements OnInit {
 
     chatSocket: WebSocket;
 
-    constructor(public helpersService: HelpersService) { }
+    constructor(
+        public helpersService: HelpersService,
+        public communicationService: CommunicationService
+    ) { }
 
     ngOnInit() {
         this.is_admin = this.helpersService.isAdmin();
@@ -26,11 +31,12 @@ export class AppComponent implements OnInit {
             + '/ws/channel/'
         );
 
-        chatSocket.onmessage = this.onWebSocketMsg;
+        chatSocket.onmessage = (e => this.onWebSocketMsg(e));
     }
 
     onWebSocketMsg(e) {
         let data = JSON.parse(e.data);
+        this.communicationService.announceServerMsg(data.message);
         console.log(data.message);
     }
 
