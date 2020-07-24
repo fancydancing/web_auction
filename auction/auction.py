@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
-from .models import Item, Bid
+from .models import Item, Bid, AuctionUser
 from . import utils
 from .consumers import ws_send
 
@@ -195,7 +195,7 @@ class AuctionList():
             'total_count': total_count
         }
 
-class AuctionUser():
+class AuctionUserInfo():
     def __init__(self, data: dict):
         """
         Constructor for AuctionUser object.
@@ -209,7 +209,7 @@ class AuctionUser():
         """
         self.user = data.get('user')
         self.status = data.get('status')
-        
+
         self.page_number = data.get('page')
         self.page_size = data.get('page_size')
         self.sort = data.get('sort')
@@ -249,13 +249,15 @@ class Authorization():
         password = data.get('password')
 
         # Login/password check
-        if username not in LOGIN_PASS or password != LOGIN_PASS[username]['password']:
+        users = AuctionUser.objects.all()
+        allowed_logins = users.values_list('name', flat=True)
+        if username not in allowed_logins or password != users.get(name=username).password:
             res = False
             role = None
             username = None
         else:
             res = True
-            role = LOGIN_PASS[username]['role']
+            role = users.get(name=username).role
 
         return {'result': res, 'login': username, 'role': role}
 

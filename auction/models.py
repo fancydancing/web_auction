@@ -46,6 +46,25 @@ def post_save_update_item_price(sender, instance, *args, **kwargs):
 
 post_save.connect(post_save_update_item_price, sender=Bid)
 
+class AuctionUser(models.Model):
+    """User model"""
+    name = models.TextField(null=False)
+    password = models.TextField(null=False)
+    role = models.TextField(null=False, default='user')
+    email = models.TextField(null=False)
+    autobid = models.BooleanField(null=False, default=False)
+    autobid_total_sum = models.IntegerField(null=True)
+    autobid_alert_perc = models.IntegerField(null=True)
+
+
+class AutoBids(models.Model):
+    item = models.ForeignKey(
+        Item, models.CASCADE, null=False, verbose_name='Item'
+    ) 
+    user = models.ForeignKey(
+        AuctionUser, models.CASCADE, null=False, verbose_name='User'
+    ) 
+
 class DeployInfo(models.Model):
     """Info about deployed DB data."""
     deploy_name = models.TextField(null=True)

@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 
-from .auction import AuctionItem, Authorization, AuctionList, AuctionUser
+from .auction import AuctionItem, Authorization, AuctionList, AuctionUserInfo
 from .models import Item
 from .forms import ItemListForm, ItemForm
 from .deploy_db import deploy_data
@@ -175,12 +175,12 @@ def item_bids_view(request, pk: int) -> HttpResponse:
     elif request.method == 'GET':
         return bids_list(pk)
 
-def item_autobid_view(request, item_id: int, auto_bid: bool):
+def item_set_autobid(request, item_id: int, auto_bid: bool):
     pass
 
 def user_bids(request, userid: int):
     """Get user's current bids"""
-    bids_list = AuctionUser(request).get_bids_list()
+    bids_list = AuctionUserInfo(request).get_bids_list()
     return HttpResponse(json.dumps(bids_list), content_type='text/json')
 
 

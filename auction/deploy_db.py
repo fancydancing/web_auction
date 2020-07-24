@@ -9,6 +9,12 @@ def deploy_data():
         return
 
     sql_str = """
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (1, 'admin', 'admin', 'admin', 'webauctiontesting+admin@gmail.com', False, 0, 0);
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (2, 'user', 'user', 'user', 'webauctiontesting+user@gmail.com', False, 0, 0);
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (3, 'user2', 'user2', 'user', 'webauctiontesting+user2@gmail.com', False, 0, 0);
+
+SELECT pg_catalog.setval('auction_auctionuser_id_seq', 3, true);
+
 INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (1, 'admin', '2020-07-01 17:29:37.486479+00', 200, 2);
 INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (3, 'admin', '2020-07-02 06:03:56.217496+00', 2100, 1);
 INSERT INTO auction_bid (id, user_name, bid_dt, price, item_id_id) VALUES (4, 'user', '2020-07-02 07:11:50.330112+00', 215, 2);
