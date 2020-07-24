@@ -112,10 +112,15 @@ export class ItemCardComponent implements OnInit {
         });
 
         this.communicationService.serverMsgAnnounced$.subscribe(
-            msg => {
-                this.alertDialog.open(msg.item_id.toString());
-            }
+            msg => this.messageHandler(msg)
         );
+    }
+
+    messageHandler(msg) {
+        // this.alertDialog.open(msg.item_id.toString())
+        if (msg.item_id == this.item_id) {
+            this.updateCard();
+        }
     }
 
     /**

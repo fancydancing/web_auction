@@ -14,6 +14,16 @@ export interface AucItem {
     close_dt?: number;
 }
 
+export interface AucUserItem {
+    item_id?: number;
+    item?: string;
+    dt?: number;
+    close_dt?: number;
+    status?: string;
+    user_price?: number;
+    max_price?: number;
+}
+
 export interface AucItems {
     // Items list of page
     items?: AucItem[];

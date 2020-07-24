@@ -1,11 +1,58 @@
-<div *ngIf="!logged">
+<div style="height: 10px;"></div>
+
+<div *ngIf="!!logged">
+    <button
+        style="margin-left: 30px;"
+        (click)="onAdminPanel()"
+        mat-raised-button
+        color="accent"
+    >Admin Panel</button>
+
+    <button
+        style="margin-left: 30px;"
+        (click)="onGallery()"
+        mat-raised-button
+        color="accent"
+    >Gallery</button>
+
+    <button
+        style="margin-left: 30px;"
+        (click)="onUserProfile()"
+        mat-raised-button
+        color="accent"
+    >User Profile</button>
+
+    <div
+        style="
+            display: inline-block;
+            margin-left: 30px;
+            font-weight: bold;
+            font-size: large;
+        "
+    >
+        Hello, {{ helpersService.getUserName() }}
+    </div>
+</div>
+
+<div style="height: 20px;"></div>
+
+<div *ngIf="viewName == 'sign-in'">
     <sign-in (signInEvent)="onSignInEvent($event)"></sign-in>
 </div>
 
-<div *ngIf="logged && is_admin">
+<div *ngIf="viewName == 'items-list'">
     <items-list></items-list>
 </div>
 
-<div *ngIf="logged && !is_admin">
+<div *ngIf="viewName == 'gallery'">
     <gallery></gallery>
 </div>
+
+<div *ngIf="viewName == 'user-page'">
+    <user-page></user-page>
+</div>
+
+<alert-dialog
+    [state]="alertDialog.state"
+    (alertDialogEvent)="alertDialog.onAlertDialogEvent($event)"
+></alert-dialog>

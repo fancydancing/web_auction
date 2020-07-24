@@ -1,0 +1,118 @@
+<div style="margin-left: 30px;" [style.display]="getListViewDisplay()">
+
+    <h1>My profile</h1>
+
+    <h2>Awarded Items:</h2>
+
+    <table
+        mat-table
+        mat-elevation-z8
+        [dataSource]="won_items"
+        class="example-table"
+    >
+        <ng-container matColumnDef="item">
+            <th mat-header-cell *matHeaderCellDef>Item</th>
+            <td
+                mat-cell
+                *matCellDef="let row"
+                style="
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    max-width: 300px;
+                "
+            >
+                <a (click)="onSelect(row.item_id)" class="action_link">
+                    <span style="font-size: bold;">{{ row.item }}</span>
+                </a>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="user_price">
+            <th mat-header-cell *matHeaderCellDef style="padding-left: 10px;">Price</th>
+            <td mat-cell *matCellDef="let row" style="padding-left: 10px;">
+                ${{ row.user_price }}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="close_dt">
+            <th mat-header-cell *matHeaderCellDef style="padding-left: 10px;">Closed</th>
+            <td
+                mat-cell
+                *matCellDef="let row"
+                style="padding-left: 10px;"
+            >{{ helpersService.getDateTimeFromEpoch(row.close_dt, 'medium') }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="wonDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: wonDisplayedColumns;"></tr>
+    </table>
+
+    <br />
+
+    <h2>Last bids:</h2>
+
+    <table
+        mat-table
+        mat-elevation-z8
+        [dataSource]="items"
+        class="example-table"
+    >
+        <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td
+                mat-cell
+                *matCellDef="let row"
+                style="font-weight: bold;"
+                [style.color]="getColorByStatus(row.status)"
+                >{{ getTextByStatus(row.status) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="item">
+            <th mat-header-cell *matHeaderCellDef style="padding-left: 10px;">Item</th>
+            <td
+                mat-cell
+                *matCellDef="let row"
+                style="
+                    padding-left: 10px;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    max-width: 300px;
+                "
+            >
+                <a (click)="onSelect(row.item_id)" class="action_link"><b>{{ row.item }}</b></a>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="user_price">
+            <th mat-header-cell *matHeaderCellDef style="padding-left: 10px;">Price</th>
+            <td
+                mat-cell
+                *matCellDef="let row"
+                style="padding-left: 10px;"
+                [style.color]="getColorForPrice(row)"
+            >${{ row.user_price }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="close_dt">
+            <th mat-header-cell *matHeaderCellDef style="padding-left: 10px;">Closed</th>
+            <td
+                mat-cell
+                *matCellDef="let row"
+                style="padding-left: 10px;"
+            >{{ helpersService.getDateTimeFromEpoch(row.close_dt, 'medium') }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="lastDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: lastDisplayedColumns;"></tr>
+    </table>
+
+</div>
+
+
+<div *ngIf="mode == mainView.Item">
+    <item-card
+        [item_id]="selectedItemId"
+        [edit_mode]="false"
+        (itemCardEvent)="onItemCardEvent($event)"
+    ></item-card>
+</div>

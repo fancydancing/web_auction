@@ -229,16 +229,20 @@ class AuctionUserInfo():
         for bid in bids_qs:
             status = ''
             if bid.item_id.awarded_user == self.user:
-                status = 'Won'
+                status = 'won'
             elif bid.item_id.awarded_user == '':
-                status = 'In progress'
+                status = 'in_progress'
             else:
-                status = 'Lost'
+                status = 'lost'
 
             result.append({
+                'item_id': bid.item_id.id,
                 'item': bid.item_id.title,
-                'dt': bid.bid_dt,
-                'status': status
+                'dt': utils.to_epoch(bid.bid_dt),
+                'close_dt': utils.to_epoch(bid.item_id.close_dt),
+                'status': status,
+                'user_price': bid.price,
+                'max_price': bid.item_id.price
             })
         return result
 

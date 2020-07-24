@@ -178,9 +178,9 @@ def item_bids_view(request, pk: int) -> HttpResponse:
 def item_set_autobid(request, item_id: int, auto_bid: bool):
     pass
 
-def user_bids(request, userid: int):
+def user_bids(request):
     """Get user's current bids"""
-    bids_list = AuctionUserInfo(request).get_bids_list()
+    bids_list = AuctionUserInfo(request.GET).get_bids_list()
     return HttpResponse(json.dumps(bids_list), content_type='text/json')
 
 
