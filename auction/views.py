@@ -196,9 +196,9 @@ def item_set_autobid(request, item_id: int):
         AuctionAutoBid().delete(data)
     
 
-def user_bids(request, userid: int):
+def user_bids(request):
     """Get user's current bids"""
-    bids_list = AuctionUserInfo(request).get_bids_list()
+    bids_list = AuctionUserInfo(request.GET).get_bids_list()
     return HttpResponse(json.dumps(bids_list), content_type='text/json')
 
 

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HelpersService } from './helpers/helpers.service';
 import { CommunicationService } from './communication/communication.service';
+import { AlertDialogState } from './alert-dialog/alert-dialog.component';
 
 
 @Component({
@@ -16,6 +17,12 @@ export class AppComponent implements OnInit {
     is_admin: boolean = false;
 
     chatSocket: WebSocket;
+
+    viewName = 'sign-in'
+
+    // Alert dialog state
+    alertDialog: AlertDialogState = new AlertDialogState();
+
 
     constructor(
         public helpersService: HelpersService,
@@ -50,6 +57,28 @@ export class AppComponent implements OnInit {
 
             // Switch from auth form to content
             this.logged = true;
+
+            if (this.is_admin) {
+                this.viewName = 'items-list'
+            } else {
+                this.viewName = 'gallery'
+            }
         }
+    }
+
+    onUserProfile() {
+        this.viewName = 'user-page'
+    }
+
+    onAdminPanel() {
+        if (this.is_admin) {
+            this.viewName = 'items-list'
+        } else {
+            this.alertDialog.open('You are not admin.');
+        }
+    }
+
+    onGallery() {
+        this.viewName = 'gallery'
     }
 }

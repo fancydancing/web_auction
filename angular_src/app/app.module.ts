@@ -24,6 +24,7 @@ import { ItemsListComponent } from './items-list/items-list.component';
 import { ItemCardComponent } from './item-card/item-card.component';
 import { SignInComponent } from './sign-in/sign-in.component';
 import { GalleryComponent } from './gallery/gallery.component';
+import { UserPageComponent } from './user-page/user-page.component';
 import { AlertDialogComponent } from './alert-dialog/alert-dialog.component';
 
 
@@ -34,8 +35,10 @@ import { AlertDialogComponent } from './alert-dialog/alert-dialog.component';
     ItemCardComponent,
     SignInComponent,
     GalleryComponent,
+    UserPageComponent,
     AlertDialogComponent
   ],
+  
   imports: [
     BrowserModule,
     HttpClientModule,

@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
+
 from .models import Item, Bid, AuctionUser, AutoBid
 from . import utils
 from .consumers import ws_send
@@ -196,16 +197,19 @@ class AuctionList():
         }
 
 class AuctionUserInfo():
+
     def __init__(self, user_id=None):
         self.user = None
         if user_id is not None:
             self.user = get_object_or_404(AuctionUser, pk=user_id)
 
 
+
     def get_bids_list(self, data) -> list:
         """
         Return a list of current bids of a user.
         """
+
 
         status = data.get('status')
         user_name = data.get('user')
@@ -218,17 +222,22 @@ class AuctionUserInfo():
 
         for bid in bids_qs:
             status = ''
+
             if bid.item_id.awarded_user == user_name:
-                status = 'Won'
+                status = 'won'
             elif bid.item_id.awarded_user == '':
-                status = 'In progress'
+                status = 'in_progress'
             else:
-                status = 'Lost'
+                status = 'lost'
 
             result.append({
+                'item_id': bid.item_id.id,
                 'item': bid.item_id.title,
-                'dt': bid.bid_dt,
-                'status': status
+                'dt': utils.to_epoch(bid.bid_dt),
+                'close_dt': utils.to_epoch(bid.item_id.close_dt),
+                'status': status,
+                'user_price': bid.price,
+                'max_price': bid.item_id.price
             })
         return result
 

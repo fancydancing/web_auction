@@ -6,7 +6,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { AucItem, AucItems, ServerResponse, Bid } from '../item';
+import { AucItem, AucItems, ServerResponse, Bid, AucUserItem } from '../item';
 
 
 @Injectable({ providedIn: 'root' })
@@ -43,6 +43,25 @@ export class RpcService {
         return this.http.get<AucItems>(itemsUrl, { params: ps })
             .pipe(
                 catchError(this.handleError<AucItems>('getItems', {}))
+            );
+    }
+
+    getUserItems(params): Observable<AucUserItem[]> {
+        let user_name = this.cookieService.get('auction_user_name');
+
+        let ps = {
+            'user': user_name,
+            'status': null
+        };
+
+        if (params.status) {
+            ps['status'] = params.status;
+        }
+
+        let itemsUrl = 'api/user/bids';
+        return this.http.get<AucUserItem[]>(itemsUrl, { params: ps })
+            .pipe(
+                catchError(this.handleError<AucUserItem[]>('getUserItems', []))
             );
     }
 

@@ -51,5 +51,5 @@ INSERT INTO auction_item (id, title, create_dt, close_dt, price, description) VA
 SELECT pg_catalog.setval('auction_item_id_seq', 27, true);
 """
     with connection.cursor() as cursor:
-        cursor.execute(sql_str)    
+        cursor.execute(sql_str)
     DeployInfo.objects.create(deploy_name='initial')
