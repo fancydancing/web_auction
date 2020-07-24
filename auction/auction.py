@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
-from .models import Item, Bid, AuctionUser
+from .models import Item, Bid, AuctionUser, AutoBid
 from . import utils
 from .consumers import ws_send
 
@@ -242,6 +242,33 @@ class AuctionUserInfo():
             })
         return result
 
+class AuctionAutoBid():    
+    def add(self, data: dict) -> int:
+        """
+        Set autobid on for a user-item pair.
+
+        parameters in data:
+            user: str - user name
+            item: int - item id
+        """
+        user = get_object_or_404(AuctionUser, name=data.get('user'))
+        item = get_object_or_404(Item, pk=data.get('item'))
+
+        data_add = {'user': user, 'item': item}
+        new_autobid = AutoBid.objects.create(**data_add)
+        return new_autobid
+
+    def get_list(self, item_id: int):
+        users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
+        return users
+
+    def delete(self, data: dict):
+        user = data['user']
+        item = data['item']
+
+        AutoBid.objects.filter(user__name=user, item__id=item).delete()
+        return True
+
 
 class Authorization():
     def login(self, data: dict) -> dict:
@@ -283,3 +310,17 @@ def check_deadlines():
         item.save()
 
     return awards
+
+def check_autobidding(item_id: int, price: int):
+    users_for_bidding = AuctionAutoBid().get_list(item_id)
+    item = AuctionItem(item_id)
+    new_price = price + 1
+    data = {}
+    
+    for user in users_for_bidding:
+        data['user'] = user.name
+        data['price'] = new_price
+        item.set_bid(data)
+        new_price += 1    
+
+    

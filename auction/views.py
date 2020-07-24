@@ -3,9 +3,10 @@ import json
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
+from django.shortcuts import get_object_or_404
 
-from .auction import AuctionItem, Authorization, AuctionList, AuctionUserInfo
-from .models import Item
+from .auction import AuctionItem, Authorization, AuctionList, AuctionUserInfo, AuctionAutoBid
+from .models import Item, AuctionUser
 from .forms import ItemListForm, ItemForm
 from .deploy_db import deploy_data
 
@@ -175,18 +176,62 @@ def item_bids_view(request, pk: int) -> HttpResponse:
     elif request.method == 'GET':
         return bids_list(pk)
 
-def item_set_autobid(request, item_id: int, auto_bid: bool):
-    pass
+def item_set_autobid(request, item_id: int):
+    """
+    Set or unset autobid on an item for a particular user
+    
+    item_id: int - item for autobid
+
+    Parameters in request:
+        user_name: str - user name
+        auto_bid: bool - turn autobid on/off
+    """
+    data = {'user': request.get('user_name'),
+            'item': item_id
+        }
+    
+    if request.get('auto_bid'):
+        AuctionAutoBid().add(data)
+    else:
+        AuctionAutoBid().delete(data)
+    
 
 def user_bids(request, userid: int):
     """Get user's current bids"""
     bids_list = AuctionUserInfo(request).get_bids_list()
     return HttpResponse(json.dumps(bids_list), content_type='text/json')
 
+def read_user(request) -> HttpResponse:
+    user_name = request.get('user_name')
+    user = get_object_or_404(AuctionUser, name=user_name)
+    result = {
+        'name': user.name,
+        'email': user.email,
+        'autobid_total_sum': user.autobid_total_sum,
+        'autobid_alert_perc': user.autobid_alert_perc
+        }
+    return HttpResponse(json.dumps(result), content_type='text/json')
+
+def update_user():
+    pass
+
+
+def user_info_view(request) -> HttpResponse:
+    """
+    Operations with current user depending on HTTP method.
+
+    PUT: update user info
+    GET: read user info
+    """
+    # Edit user info
+    if request.method == 'PUT':
+        return update_user(request)
+    # Read user info
+    elif request.method == 'GET':
+        return read_user(request.GET)
+
 
 def index_view(request) -> HttpResponse:
     """Show start page with items list."""
     deploy_data()
     return render(request, 'items.html')
-
-

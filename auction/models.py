@@ -52,18 +52,18 @@ class AuctionUser(models.Model):
     password = models.TextField(null=False)
     role = models.TextField(null=False, default='user')
     email = models.TextField(null=False)
-    autobid = models.BooleanField(null=False, default=False)
     autobid_total_sum = models.IntegerField(null=True)
     autobid_alert_perc = models.IntegerField(null=True)
 
 
-class AutoBids(models.Model):
+class AutoBid(models.Model):
     item = models.ForeignKey(
         Item, models.CASCADE, null=False, verbose_name='Item'
     ) 
     user = models.ForeignKey(
         AuctionUser, models.CASCADE, null=False, verbose_name='User'
-    ) 
+    )
+    create_dt = models.DateTimeField(null=False, default=timezone.now, verbose_name='Set at')
 
 class DeployInfo(models.Model):
     """Info about deployed DB data."""
