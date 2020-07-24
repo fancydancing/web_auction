@@ -1,4 +1,5 @@
 import json
+import operator
 
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -209,12 +210,13 @@ class AuctionUserInfo():
         """
         Return a list of current bids of a user.
         """
-
-
         status = data.get('status')
         user_name = data.get('user')
 
-        bids_qs = Bid.objects.filter(user_name=user_name).order_by('-bid_dt', 'item_id').distinct('item_id')
+        bids_qs_init = Bid.objects.filter(user_name=user_name).order_by('item_id', '-bid_dt').distinct('item_id')
+        bids_qs = sorted(bids_qs_init, key=operator.attrgetter('bid_dt'), reverse=True)
+
+        print(bids_qs)
 
         if status == 'won':
             bids_qs = bids_qs.filter(item_id__awarded_user=user_name)

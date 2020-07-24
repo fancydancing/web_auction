@@ -198,7 +198,8 @@ def item_set_autobid(request, item_id: int):
 
 def user_bids(request):
     """Get user's current bids"""
-    bids_list = AuctionUserInfo(request.GET).get_bids_list()
+    user = get_object_or_404(AuctionUser, name=request.GET.get('user'))
+    bids_list = AuctionUserInfo(user.id).get_bids_list(request.GET)
     return HttpResponse(json.dumps(bids_list), content_type='text/json')
 
 
