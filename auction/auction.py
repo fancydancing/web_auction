@@ -196,39 +196,29 @@ class AuctionList():
         }
 
 class AuctionUserInfo():
-    def __init__(self, data: dict):
-        """
-        Constructor for AuctionUser object.
-        Parameters in data:
-            user: str - user name
-            status: str - 'won' or None
-            page: int - number of page
-            page_size: int - size of page
-            sort: str - 'asc' or 'desc'
-            order: str - field name to sort on
-        """
-        self.user = data.get('user')
-        self.status = data.get('status')
+    def __init__(self, user_id=None):
+        self.user = None
+        if user_id is not None:
+            self.user = get_object_or_404(AuctionUser, pk=user_id)
 
-        self.page_number = data.get('page')
-        self.page_size = data.get('page_size')
-        self.sort = data.get('sort')
-        self.order = data.get('order')
 
-    def get_bids_list(self) -> list:
+    def get_bids_list(self, data) -> list:
         """
         Return a list of current bids of a user.
         """
 
-        bids_qs = Bid.objects.filter(user_name=self.user).order_by('item_id', '-bid_dt').distinct('item_id')
+        status = data.get('status')
+        user_name = data.get('user')
 
-        if self.status == 'won':
-            bids_qs = bids_qs.filter(item_id__awarded_user=self.user)
+        bids_qs = Bid.objects.filter(user_name=user_name).order_by('-bid_dt', 'item_id').distinct('item_id')
+
+        if status == 'won':
+            bids_qs = bids_qs.filter(item_id__awarded_user=user_name)
         result = []
 
         for bid in bids_qs:
             status = ''
-            if bid.item_id.awarded_user == self.user:
+            if bid.item_id.awarded_user == user_name:
                 status = 'Won'
             elif bid.item_id.awarded_user == '':
                 status = 'In progress'
@@ -241,6 +231,36 @@ class AuctionUserInfo():
                 'status': status
             })
         return result
+
+
+    def read(self) -> dict:
+        """Read user info."""
+        return {
+            'id': self.user.id,
+            'name': self.user.name,
+            'email': self.user.email,
+            'autobid_total_sum': self.user.autobid_total_sum,
+            'autobid_alert_perc': self.user.autobid_alert_perc
+        }
+
+
+    def edit(self, data: dict) -> bool:
+        """
+        Edit user info.
+
+        parameters in data:
+            email: str - new email
+            autobid_total_sum: int - new autobid_total_sum
+            autobid_alert_perc: int - new autobid_alert_perc
+        """
+
+        self.user.email = data.get('email', self.user.email)
+        self.user.autobid_total_sum = data.get('autobid_total_sum', self.user.autobid_total_sum)
+        self.user.autobid_alert_perc = data.get('autobid_alert_perc', self.user.autobid_alert_perc)
+        self.user.save()
+
+        return True
+
 
 class AuctionAutoBid():    
     def add(self, data: dict) -> int:
@@ -284,9 +304,11 @@ class Authorization():
             username = None
         else:
             res = True
-            role = users.get(name=username).role
+            logged_user = users.get(name=username)
+            role = logged_user.role
+            id = logged_user.id
 
-        return {'result': res, 'login': username, 'role': role}
+        return {'result': res, 'login': username, 'role': role, 'id': id}
 
 
 def check_deadlines():

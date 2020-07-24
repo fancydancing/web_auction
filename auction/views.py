@@ -201,22 +201,36 @@ def user_bids(request, userid: int):
     bids_list = AuctionUserInfo(request).get_bids_list()
     return HttpResponse(json.dumps(bids_list), content_type='text/json')
 
-def read_user(request) -> HttpResponse:
-    user_name = request.get('user_name')
-    user = get_object_or_404(AuctionUser, name=user_name)
-    result = {
-        'name': user.name,
-        'email': user.email,
-        'autobid_total_sum': user.autobid_total_sum,
-        'autobid_alert_perc': user.autobid_alert_perc
-        }
-    return HttpResponse(json.dumps(result), content_type='text/json')
 
-def update_user():
-    pass
+def read_user(pk: int) -> HttpResponse:
+    """
+    Read user info.
+
+    pk: int - user ID
+    """
+    result = AuctionUserInfo(pk).read()
+    return HttpResponse(json.dumps(result),content_type='text/json')
 
 
-def user_info_view(request) -> HttpResponse:
+def update_user(request, pk: int) -> HttpResponse:
+    """
+    Update user.
+
+    Parameters in request (all optional):
+        email: str - new email
+        autobid_total_sum: int - new autobid_total_sum
+        autobid_alert_perc: int - new autobid_alert_perc
+    """
+    data = json.loads(request.body.decode('utf-8'))
+    # item_form = ItemForm(data)
+    # if item_form.is_valid():
+    result = AuctionUserInfo(pk).edit(data)
+    res = {'result': result}
+    return HttpResponse(json.dumps(res), content_type='text/json')
+
+
+
+def user_info_view(request, pk) -> HttpResponse:
     """
     Operations with current user depending on HTTP method.
 
@@ -228,7 +242,8 @@ def user_info_view(request) -> HttpResponse:
         return update_user(request)
     # Read user info
     elif request.method == 'GET':
-        return read_user(request.GET)
+        return read_user(pk)
+        
 
 
 def index_view(request) -> HttpResponse:

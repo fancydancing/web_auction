@@ -9,6 +9,6 @@ urlpatterns = [
     path('items/<int:pk>/bids', views.item_bids_view, name='item_bids'),
     path('items/<int:pk>/auto_bid', views.item_set_autobid, name='item_set_autobid'),
     path('user/bids', views.user_bids, name='user_bids'),
-    path('user/profile', views.user_info_view, name='user_info_view'),
+    path('user/<int:pk>/profile', views.user_info_view, name='user_info_view'),
     path('sign_in', views.sign_in_view, name='sign_in'),
 ]
