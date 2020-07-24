@@ -195,13 +195,58 @@ class AuctionList():
             'total_count': total_count
         }
 
+class AuctionUser():
+    def __init__(self, data: dict):
+        """
+        Constructor for AuctionUser object.
+        Parameters in data:
+            user: str - user name
+            status: str - 'won' or None
+            page: int - number of page
+            page_size: int - size of page
+            sort: str - 'asc' or 'desc'
+            order: str - field name to sort on
+        """
+        self.user = data.get('user')
+        self.status = data.get('status')
+        
+        self.page_number = data.get('page')
+        self.page_size = data.get('page_size')
+        self.sort = data.get('sort')
+        self.order = data.get('order')
+
+    def get_bids_list(self) -> list:
+        """
+        Return a list of current bids of a user.
+        """
+
+        bids_qs = Bid.objects.filter(user_name=self.user).order_by('item_id', '-bid_dt').distinct('item_id')
+
+        if self.status == 'won':
+            bids_qs = bids_qs.filter(item_id__awarded_user=self.user)
+        result = []
+
+        for bid in bids_qs:
+            status = ''
+            if bid.item_id.awarded_user == self.user:
+                status = 'Won'
+            elif bid.item_id.awarded_user == '':
+                status = 'In progress'
+            else:
+                status = 'Lost'
+
+            result.append({
+                'item': bid.item_id.title,
+                'dt': bid.bid_dt,
+                'status': status
+            })
+        return result
+
 
 class Authorization():
     def login(self, data: dict) -> dict:
         username = data.get('login')
         password = data.get('password')
-
-        task_send_email.delay(username)
 
         # Login/password check
         if username not in LOGIN_PASS or password != LOGIN_PASS[username]['password']:
