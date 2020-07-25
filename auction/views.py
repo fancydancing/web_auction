@@ -6,7 +6,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import get_object_or_404
 
 from .auction import AuctionItem, Authorization, AuctionList, AuctionUserInfo, AuctionAutoBid, check_autobidding
-from .models import Item, AuctionUser
+from .models import Item, AuctionUser, AutoBid
 from .forms import ItemListForm, ItemForm
 from .deploy_db import deploy_data
 
@@ -250,13 +250,14 @@ def user_info_view(request, pk) -> HttpResponse:
 
 
 def item_info_for_user(request, pk_user: int, pk_item: int) -> dict:
-    exists = AuctionAutoBid.filter(user__id=pk_user, item__id=pk_item)
+    exists = AutoBid.objects.filter(user__id=pk_user, item__id=pk_item)
     autobid = len(exists) > 0
-    return {'autobid': autobid}
+    res = {'autobid': autobid}
+    return HttpResponse(json.dumps(res), content_type='text/json')
 
 
 def index_view(request) -> HttpResponse:
     """Show start page with items list."""
-    check_autobidding(2, 215)
+    # check_autobidding(2, 215)
     deploy_data()
     return render(request, 'items.html')
