@@ -316,7 +316,7 @@ class AuctionUserInfo():
         return True
 
 
-class AuctionAutoBid():    
+class AuctionAutoBid():
     def add(self, data: dict) -> int:
         """
         Set autobid on for a user-item pair.
@@ -374,7 +374,7 @@ def check_deadlines():
         bids = Bid.objects.filter(item_id=item)
         if len(bids) > 0:
             latest_bid = bids.latest('bid_dt')
-            winner_name = latest_bid.name
+            winner_name = latest_bid.user_name
             user = AuctionUser.objects.get(name=winner_name)
             awards.append({'item': item.title,
                            'item_id': item.id,
@@ -402,10 +402,10 @@ def check_autobidding(item_id: int, price: int):
         return
     else:
         winner = users_for_bidding[0]
-            
+
     pre_max_bidder = None
     new_price = price + 1
-    
+
     # TODO: two winners
     if len(users_for_bidding) > 1:
         pre_max_bidder = users_for_bidding[1]
@@ -414,5 +414,5 @@ def check_autobidding(item_id: int, price: int):
     item = AuctionItem(item_id)
     data = {'user': winner.name, 'price': new_price, 'auto': True}
     item.set_bid(data)
-    
+
     return {}
