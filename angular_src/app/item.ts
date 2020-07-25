@@ -101,3 +101,8 @@ export interface ServerMsg {
 
     autobid_total_sum?: number;
 }
+
+export interface UserItem {
+    autobid?: boolean;
+}
+

@@ -6,7 +6,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { AucItem, AucItems, ServerResponse, Bid, AucUserItem, UserInfo } from '../item';
+import { AucItem, AucItems, ServerResponse, Bid, AucUserItem, UserInfo, UserItem } from '../item';
 
 
 @Injectable({ providedIn: 'root' })
@@ -96,6 +96,14 @@ export class RpcService {
         return this.http.get<UserInfo>(url)
             .pipe(
                 catchError(this.handleError<UserInfo>('getUser', null))
+            );
+    }
+
+    getUserItemInfo(user_id: Number, item_id: Number): Observable<UserItem> {
+        const url = `api/users/${user_id}/item/${item_id}`;
+        return this.http.get<UserItem>(url)
+            .pipe(
+                catchError(this.handleError<UserItem>('getUserItemInfo', null))
             );
     }
 
