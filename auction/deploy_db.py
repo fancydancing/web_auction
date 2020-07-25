@@ -9,9 +9,9 @@ def deploy_data():
         return
 
     sql_str = """
-INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (1, 'admin', 'admin', 'admin', 'webauctiontesting+admin@gmail.com', False, 0, 0);
-INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (2, 'user', 'user', 'user', 'webauctiontesting+user@gmail.com', False, 0, 0);
-INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (3, 'user2', 'user2', 'user', 'webauctiontesting+user2@gmail.com', False, 0, 0);
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (1, 'admin', 'admin', 'admin', 'webauctiontesting+admin@gmail.com', False, null, null);
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (2, 'user', 'user', 'user', 'webauctiontesting+user@gmail.com', False, null, null);
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid, autobid_total_sum, autobid_alert_perc) VALUES (3, 'user2', 'user2', 'user', 'webauctiontesting+user2@gmail.com', False, null, null);
 
 SELECT pg_catalog.setval('auction_auctionuser_id_seq', 3, true);
 
