@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, EventEmitter,  Output } from '@angular/core';
-import { AucItem, Bid, ServerResponse, ItemCardEvent } from '../item';
+import { AucItem, Bid, ServerResponse, ItemCardEvent, UserItem } from '../item';
 import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
@@ -7,7 +7,7 @@ import { CommunicationService } from '../communication/communication.service';
 
 import { FormControl, Validators } from '@angular/forms';
 import { FormGroup, FormBuilder } from '@angular/forms';
-import { reduce } from 'rxjs/operators';
+
 
 @Component({
   selector: 'item-card',
@@ -37,7 +37,7 @@ export class ItemCardComponent implements OnInit {
     // Field for submit new bid
     bid_price: number;
 
-    auto_bid: boolean = false;
+    auto_bid: boolean;
 
     // Item close datetime
     close_dt: Date;
@@ -138,10 +138,13 @@ export class ItemCardComponent implements OnInit {
             return;
         }
 
-        //this.item = {};
+        let user_id = this.helpersService.getUserId();
 
         this.rpcService.getItem(this.item_id)
             .subscribe(item => this.getItemHandler(item));
+
+        this.rpcService.getUserItemInfo(user_id, this.item_id)
+            .subscribe(info => this.auto_bid = info.autobid);
 
         this.rpcService.getBids(this.item_id)
             .subscribe(bids => this.bids = bids);
