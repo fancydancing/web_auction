@@ -32,19 +32,26 @@ export class AppComponent implements OnInit {
     ngOnInit() {
         this.is_admin = this.helpersService.isAdmin();
 
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/channel/'
-        );
+        let ws_url = 'ws://' + window.location.host + '/ws/channel/';
+        const chatSocket = new WebSocket(ws_url);
 
         chatSocket.onmessage = (e => this.onWebSocketMsg(e));
+
+        this.communicationService.serverMsgAnnounced$.subscribe(
+            msg => this.messageHandler(msg)
+        );
+
     }
 
     onWebSocketMsg(e) {
         let data = JSON.parse(e.data);
         this.communicationService.announceServerMsg(data.message);
-        console.log(data.message);
+    }
+
+    messageHandler(msg) {
+        if (msg.user_id == this.helpersService.getUserId() && msg.event == 'item_won') {
+            this.alertDialog.open('You won: "' + msg.item_title + '"');
+        }
     }
 
     /**
