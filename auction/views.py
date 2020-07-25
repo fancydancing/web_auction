@@ -191,11 +191,9 @@ def item_set_autobid(request, pk: int):
         }
 
     if request.GET.get('auto_bid'):
-        res = AuctionAutoBid().add(data)
+        result = AuctionAutoBid().add(data)
     else:
-        res = AuctionAutoBid().delete(data)
-
-    result = {'result': res}
+        result = AuctionAutoBid().delete(data)
 
     return HttpResponse(json.dumps(result), content_type='text/json')
 

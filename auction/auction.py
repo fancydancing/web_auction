@@ -347,7 +347,7 @@ class AuctionAutoBid():
         data_add = {'user': user, 'item': item}
         new_autobid = AutoBid.objects.create(**data_add)
 
-        return True
+        return {'result': True, 'auto_bid_state': True}
 
     def get_list(self, item_id: int):
         users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
@@ -367,7 +367,7 @@ class AuctionAutoBid():
         item = data['item']
 
         AutoBid.objects.filter(user__name=user, item__id=item).delete()
-        return True
+        return {'result': True, 'auto_bid_state': False}
 
 
 class Authorization():
