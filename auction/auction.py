@@ -220,6 +220,8 @@ class AuctionUserInfo():
 
         if sort == 'close_dt':
             bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('item_id__close_dt')
+        elif sort == 'bid_dt':
+            bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('-bid_dt')
 
         if status == 'won':
             bids_qs = bids_qs.filter(item_id__awarded_user=user_name)
