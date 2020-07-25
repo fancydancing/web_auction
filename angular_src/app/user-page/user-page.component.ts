@@ -14,7 +14,7 @@ import { FormGroup, FormBuilder } from '@angular/forms';
   styles: []
 })
 export class UserPageComponent implements OnInit {
-    userInfo: UserInfo = null;
+    userInfo: UserInfo = {};
     mode: String = MainView.List;
 
     // Pass enum MainView to template
@@ -31,8 +31,8 @@ export class UserPageComponent implements OnInit {
     lastDisplayedColumns: string[] = ['status', 'item', 'user_price', 'dt'];
 
     // Form for editing user profile
-    form: FormGroup;
-    email = new FormControl('', [Validators.email]);
+    formGroup: FormGroup;
+    emailFormControl = new FormControl('', [Validators.email]);
 
     constructor(
         private rpcService: RpcService,
@@ -43,7 +43,7 @@ export class UserPageComponent implements OnInit {
 
     ngOnInit() {
         // Forms config. Validators setup
-        this.form = this.formBuilder.group({
+        this.formGroup = this.formBuilder.group({
             emailControl: [
                 null,
                 Validators.compose([
@@ -68,10 +68,20 @@ export class UserPageComponent implements OnInit {
         });
 
         this.updateUserPage();
+
+        this.communicationService.rootMsgAnnounced$.subscribe(
+            msg => this.rootMessageHandler(msg)
+        );
+    }
+
+    rootMessageHandler(msg) {
+        if (msg == 'close_card') {
+            this.setListViewMode(false);
+        }
     }
 
     getErrorMessage() {
-          return this.email.hasError('email') ? 'Not a valid email' : '';
+          return this.emailFormControl.hasError('email') ? 'Not a valid email' : '';
     }
 
     updateUserPage() {
@@ -86,8 +96,8 @@ export class UserPageComponent implements OnInit {
     }
 
     updateUserInfo() {
-        if (!this.form.valid) {
-            this.helpersService.validateAllFormFields(this.form);
+        if (!this.formGroup.valid) {
+            this.helpersService.validateAllFormFields(this.formGroup);
             return;
         }
 
@@ -117,9 +127,21 @@ export class UserPageComponent implements OnInit {
         }
 
         if (item.user_price < item.max_price) {
-            return 'red'
+            return 'red';
         } else {
-            return 'green'
+            return 'green';
+        }
+    }
+
+    getTooltipForPrice(item: AucUserItem) {
+        if (item.close_dt < this.helpersService.getCurrentEpoch()) {
+            return 'Auction for item is closed';
+        }
+
+        if (item.user_price < item.max_price) {
+            return 'You have been outbidded';
+        } else {
+            return 'Your bid is highest';
         }
     }
 

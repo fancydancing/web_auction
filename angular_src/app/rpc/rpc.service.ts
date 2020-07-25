@@ -126,11 +126,9 @@ export class RpcService {
             );
     }
 
-    autoBid(item_id: number, auto_bid: boolean): Observable<ServerResponse> {
-        let user_name = this.cookieService.get('auction_user_name');
-
+    autoBid(item_id: number, user_id: number, auto_bid: boolean): Observable<ServerResponse> {
         const url = `api/items/${item_id}/auto_bid`;
-        return this.http.post<ServerResponse>(url, {auto_bid: auto_bid, user_name: user_name})
+        return this.http.post<ServerResponse>(url, {auto_bid: auto_bid, user_id: user_id})
             .pipe(
                 catchError(this.handleError<ServerResponse>('autoBid'))
             );

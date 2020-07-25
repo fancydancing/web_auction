@@ -10,6 +10,13 @@ from celery.schedules import crontab
 from datetime import timedelta
 from .auction import check_deadlines, check_autobidding, AuctionItem
 from .models import Item, Bid
+from .consumers import ws_send
+
+
+@shared_task
+def celery_ws_send(message):
+    print('CELERY TASK: websocket sending')
+    ws_send(message)
 
 
 @shared_task

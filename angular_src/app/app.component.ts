@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HelpersService } from './helpers/helpers.service';
 import { CommunicationService } from './communication/communication.service';
 import { AlertDialogState } from './alert-dialog/alert-dialog.component';
+import { ServerMsg } from './item';
 
 
 @Component({
@@ -48,9 +49,35 @@ export class AppComponent implements OnInit {
         this.communicationService.announceServerMsg(data.message);
     }
 
-    messageHandler(msg) {
-        if (msg.user_id == this.helpersService.getUserId() && msg.event == 'item_won') {
+    messageHandler(msg: ServerMsg) {
+        let user_id = this.helpersService.getUserId();
+
+        if (msg.event == 'item_won' && msg.user_id == user_id) {
             this.alertDialog.open('You won: "' + msg.item_title + '"');
+            return;
+        }
+
+        if (msg.event == 'autobid_exceeding' && msg.user_id == user_id) {
+            let alert_msg = (
+                'The autobiding threshold is exceeded ' +
+                '$' + msg.autobid_spent.toString() + '/' +
+                '$' + msg.autobid_total_sum.toString()
+            );
+            this.alertDialog.open(alert_msg);
+            return;
+        }
+
+        if (msg.event == 'item_losing' && msg.user_id == user_id) {
+            let alert_msg = (
+                'Your bid ' +
+                '$' + msg.user_bid_price.toString() +
+                ' on item ' +
+                '"' + msg.item_title + '"' +
+                ' was outbided (' +
+                '$' + msg.item_price.toString() + ')'
+            );
+            this.alertDialog.open(alert_msg);
+            return;
         }
     }
 
@@ -66,26 +93,29 @@ export class AppComponent implements OnInit {
             this.logged = true;
 
             if (this.is_admin) {
-                this.viewName = 'items-list'
+                this.viewName = 'items-list';
             } else {
-                this.viewName = 'gallery'
+                this.viewName = 'gallery';
             }
         }
     }
 
     onUserProfile() {
-        this.viewName = 'user-page'
+        this.viewName = 'user-page';
+        this.communicationService.announceRootMsg('close_card');
     }
 
     onAdminPanel() {
         if (this.is_admin) {
-            this.viewName = 'items-list'
+            this.viewName = 'items-list';
+            this.communicationService.announceRootMsg('close_card');
         } else {
             this.alertDialog.open('You are not admin.');
         }
     }
 
     onGallery() {
-        this.viewName = 'gallery'
+        this.viewName = 'gallery';
+        this.communicationService.announceRootMsg('close_card');
     }
 }

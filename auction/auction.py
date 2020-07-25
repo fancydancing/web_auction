@@ -11,6 +11,8 @@ from .models import Item, Bid, AuctionUser, AutoBid
 from . import utils
 from .consumers import ws_send
 
+from celery import current_app
+
 
 # Used to show all items without pagination
 ALL_ITEMS = -1
@@ -21,6 +23,10 @@ LOGIN_PASS = {
     'user': {'password': 'user', 'role': 'user', 'email': 'webauctiontesting+user@gmail.com'},
     'user2': {'password': 'user2', 'role': 'user', 'email': 'webauctiontesting+user2@gmail.com'}
     }
+
+
+def celery_send_task(p):
+    current_app.send_task('auction.tasks.celery_ws_send', args=[p])
 
 
 class AuctionItem():
@@ -61,7 +67,7 @@ class AuctionItem():
         self.item.close_dt = utils.from_epoch(data.get('close_dt')) or self.item.close_dt
         self.item.save()
 
-        ws_send({
+        celery_send_task({
             'event': 'item_changed',
             'item_id': self.item.id
         })
@@ -147,14 +153,14 @@ class AuctionItem():
         new_bid = Bid.objects.create(**data)
 
         # Send notification for list refresh
-        ws_send({
+        celery_send_task({
             'item_id': self.item.id,
             'event': 'new_bid'
         })
 
         # Send notification for previous winner
-        if (notify_previous):
-            ws_send({
+        if notify_previous:
+            celery_send_task({
                 'event': 'item_losing',
                 'user_id': prev_winner.id,
                 'winner_name': user_name,
@@ -163,11 +169,10 @@ class AuctionItem():
                 'user_bid_price': previous_price
                 })
 
-
         return {'result': True, 'id': new_bid.id}
 
     def notify_winner(self, user_id):
-        ws_send({
+        celery_send_task({
             'event': 'item_won',
             'item_title': self.item.title,
             'user_id': user_id,
@@ -391,6 +396,7 @@ def check_deadlines():
         item.save()
 
     return awards
+
 
 def check_autobidding(item_id: int, price: int):
     """

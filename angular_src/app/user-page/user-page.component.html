@@ -3,7 +3,7 @@
     <h1>My profile</h1>
 
 
-    <form class="example-form" [formGroup]="form">
+    <form class="example-form" [formGroup]="formGroup">
         <mat-form-field
             appearance="fill"
             style="width: 300px;"
@@ -12,11 +12,11 @@
             <input
                 matInput
                 placeholder="pat@example.com"
-                [formControl]="email"
+                [formControl]="emailFormControl"
                 formControlName="emailControl"
                 [(ngModel)]="userInfo.email"
             >
-            <mat-error *ngIf="email.invalid">{{ getErrorMessage() }}</mat-error>
+            <mat-error *ngIf="emailFormControl.invalid">{{ getErrorMessage() }}</mat-error>
         </mat-form-field>
 
         <br />

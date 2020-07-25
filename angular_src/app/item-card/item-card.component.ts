@@ -7,6 +7,7 @@ import { CommunicationService } from '../communication/communication.service';
 
 import { FormControl, Validators } from '@angular/forms';
 import { FormGroup, FormBuilder } from '@angular/forms';
+import { reduce } from 'rxjs/operators';
 
 @Component({
   selector: 'item-card',
@@ -18,7 +19,7 @@ export class ItemCardComponent implements OnInit {
     @Input() item_id: number;
 
     // Auction item
-    @Input() item: AucItem;
+    @Input() item: AucItem = {};
 
     // False - view item
     // True - add new item or edit current item
@@ -118,8 +119,14 @@ export class ItemCardComponent implements OnInit {
 
     messageHandler(msg) {
         // this.alertDialog.open(msg.item_id.toString())
-        if (msg.item_id == this.item_id && msg.event == 'new_bid') {
+        if (msg.event == 'new_bid' && msg.item_id == this.item_id) {
             this.updateCard();
+            return
+        }
+
+        if (msg.event == 'item_changed' && msg.item_id == this.item_id) {
+            this.updateCard();
+            return
         }
     }
 
@@ -131,7 +138,7 @@ export class ItemCardComponent implements OnInit {
             return;
         }
 
-        this.item = {};
+        //this.item = {};
 
         this.rpcService.getItem(this.item_id)
             .subscribe(item => this.getItemHandler(item));
@@ -152,7 +159,15 @@ export class ItemCardComponent implements OnInit {
         }
 
         this.item = item;
-        this.bid_price = null;
+
+        //this.bid_price = null;
+        // this.formBid.reset();
+        // Object.keys(this.formBid.controls).forEach(key => {
+        //     this.formBid.controls[key].reset();
+        //     this.formBid.controls[key].setErrors(null);
+        // });
+        // this.markAllAsUntouched(this.formBid);
+
 
         this.close_dt = this.helpersService.getDateFromEpoch(item.close_dt);
         let epoch = this.helpersService.getCurrentEpoch();
@@ -214,6 +229,15 @@ export class ItemCardComponent implements OnInit {
         });
     }
 
+    markAllAsUntouched(formGroup: FormGroup) {
+        Object.keys(formGroup.controls).forEach(field => {
+            const control = formGroup.get(field);
+            if (control instanceof FormControl) {
+                control.markAsUntouched({ onlySelf: true });
+            }
+        });
+    }
+
     /**
      * Filter for date picker. It allows to choose datetime only in future
      * @param d Date for datetime picker
@@ -255,6 +279,8 @@ export class ItemCardComponent implements OnInit {
 
         this.rpcService.makeBid(this.item_id, this.bid_price)
             .subscribe(res => this.makeBidHandler(res));
+
+        this.bid_price = 0;
     }
 
     /**
@@ -270,7 +296,21 @@ export class ItemCardComponent implements OnInit {
     }
 
     autoBidChange() {
-        this.rpcService.autoBid(this.item_id, this.auto_bid)
-            .subscribe(() => this.alertDialog.open('Auto bid enabled'));
+        let user_id = this.helpersService.getUserId();
+        this.rpcService.autoBid(this.item_id, user_id, this.auto_bid)
+            .subscribe(res => this.autoBidHandler(res));
+    }
+
+    autoBidHandler(res) {
+        if (res.result) {
+            if (res.auto_bid_state) {
+                this.alertDialog.open('Auto bid enabled')
+            } else {
+                this.alertDialog.open('Auto bid disabled')
+            }
+        } else {
+            this.alertDialog.open('You should set total auto bid sum first.')
+            this.auto_bid = res.auto_bid_state
+        }
     }
 }
