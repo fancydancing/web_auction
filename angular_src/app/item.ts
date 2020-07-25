@@ -85,11 +85,19 @@ export enum ItemCardEvent {
 }
 
 export interface ServerMsg {
-    item_id?: number;
-
     event?: string;
 
     user_id?: number;
 
+    user_bid_price?: number;
+
+    item_id?: number;
+
     item_title?: string;
+
+    item_price?: number;
+
+    autobid_spent?: number;
+
+    autobid_total_sum?: number;
 }

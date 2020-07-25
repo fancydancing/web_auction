@@ -185,6 +185,7 @@
                     class="example-margin"
                     [(ngModel)]="auto_bid"
                     (change)="autoBidChange()"
+                    [ngModelOptions]="{standalone: true}"
                 >Auto bid</mat-checkbox>
             </div>
 

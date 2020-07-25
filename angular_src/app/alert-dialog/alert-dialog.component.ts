@@ -7,7 +7,7 @@ import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
 })
 export class AlertDialogComponent implements OnInit {
     @Input() state;
-    
+
     @Output() alertDialogEvent: EventEmitter<string> = new EventEmitter<string>();
 
     constructor() { }
@@ -24,7 +24,8 @@ export class AlertDialogComponent implements OnInit {
 export class AlertDialogState {
     public state = {
         showState: false, // show or hide dialog
-        msg: '' // msg to show
+        msg: '', // msg to show
+        msg_queue: []
     }
 
     /**
@@ -33,7 +34,7 @@ export class AlertDialogState {
      */
     public onAlertDialogEvent(ev) {
         if (ev == 'hide_dialog') {
-            this.state.showState = false;
+            this.showNext();
         }
     }
 
@@ -42,7 +43,19 @@ export class AlertDialogState {
      * @param msg Message to display
      */
     public open(msg: string) {
-        this.state.msg = msg;
-        this.state.showState = true;
+        this.state.msg_queue.push(msg);
+        if (!this.state.showState) {
+            this.showNext();
+        }
+    }
+
+    public showNext() {
+        let m = this.state.msg_queue.shift();
+        if (m) {
+            this.state.msg = m;
+            this.state.showState = true;
+        } else {
+            this.state.showState = false;
+        }
     }
 }

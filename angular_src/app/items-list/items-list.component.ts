@@ -9,6 +9,7 @@ import { map, startWith, switchMap, delay } from 'rxjs/operators';
 import { AucItem, AucItems, MainView, ItemCardEvent } from '../item';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
+import { CommunicationService } from '../communication/communication.service';
 import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
 
 
@@ -48,7 +49,7 @@ export class ItemsListComponent implements AfterViewInit  {
 
     // Alert dialog state
     alertDialog: AlertDialogState = new AlertDialogState();
-    
+
     // Items table paginator
     @ViewChild(MatPaginator) paginator: MatPaginator;
 
@@ -57,7 +58,8 @@ export class ItemsListComponent implements AfterViewInit  {
 
     constructor(
         private rpcService: RpcService,
-        public helpersService: HelpersService
+        public helpersService: HelpersService,
+        public communicationService: CommunicationService
     ) {
         this.is_admin = this.helpersService.isAdmin();
 
@@ -99,6 +101,16 @@ export class ItemsListComponent implements AfterViewInit  {
             distinctUntilChanged()
 
         ).subscribe((term: string) => this.startSearch(term));
+
+        this.communicationService.rootMsgAnnounced$.subscribe(
+            msg => this.rootMessageHandler(msg)
+        );
+    }
+
+    rootMessageHandler(msg) {
+        if (msg == 'close_card') {
+            this.setListViewMode(false);
+        }
     }
 
     /**

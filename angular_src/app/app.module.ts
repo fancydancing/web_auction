@@ -18,6 +18,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AppComponent } from './app.component';
 import { ItemsListComponent } from './items-list/items-list.component';
@@ -38,7 +39,7 @@ import { AlertDialogComponent } from './alert-dialog/alert-dialog.component';
     UserPageComponent,
     AlertDialogComponent
   ],
-  
+
   imports: [
     BrowserModule,
     HttpClientModule,
@@ -60,7 +61,8 @@ import { AlertDialogComponent } from './alert-dialog/alert-dialog.component';
     MatSortModule,
     MatPaginatorModule,
     MatCardModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatTooltipModule
   ],
   providers: [DatePipe, CookieService],
   bootstrap: [AppComponent]

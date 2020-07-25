@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AucItem, AucItems, MainView, ItemCardEvent } from '../item';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
+import { CommunicationService } from '../communication/communication.service';
 
 
 @Component({
@@ -24,10 +25,21 @@ export class GalleryComponent implements OnInit {
     constructor(
         private rpcService: RpcService,
         public helpersService: HelpersService,
+        public communicationService: CommunicationService
     ) { }
 
     ngOnInit() {
         this.getItems();
+
+        this.communicationService.rootMsgAnnounced$.subscribe(
+            msg => this.rootMessageHandler(msg)
+        );
+    }
+
+    rootMessageHandler(msg) {
+        if (msg == 'close_card') {
+            this.setListViewMode(false);
+        }
     }
 
     /**
