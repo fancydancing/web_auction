@@ -183,17 +183,19 @@ def item_set_autobid(request, pk: int):
     pk: int - item for autobid
 
     Parameters in request:
-        user_name: str - user name
+        user_id: int - user id
         auto_bid: bool - turn autobid on/off
     """
-    data = {'user': request.GET.get('user_name'),
-            'item': pk
+    data = json.loads(request.body.decode('utf-8'))
+
+    data_autobid = {'user': data.get('user_id'),
+                    'item': pk
         }
 
-    if request.GET.get('auto_bid'):
-        result = AuctionAutoBid().add(data)
+    if data.get('auto_bid'):
+        result = AuctionAutoBid().add(data_autobid)
     else:
-        result = AuctionAutoBid().delete(data)
+        result = AuctionAutoBid().delete(data_autobid)
 
     return HttpResponse(json.dumps(result), content_type='text/json')
 
@@ -247,7 +249,7 @@ def user_info_view(request, pk) -> HttpResponse:
         return read_user(pk)
 
 
-def item_info_for_user(pk_user: int, pk_item: int) -> dict:
+def item_info_for_user(request, pk_user: int, pk_item: int) -> dict:
     exists = AuctionAutoBid.filter(user__id=pk_user, item__id=pk_item)
     autobid = len(exists) > 0
     return {'autobid': autobid}
@@ -255,6 +257,6 @@ def item_info_for_user(pk_user: int, pk_item: int) -> dict:
 
 def index_view(request) -> HttpResponse:
     """Show start page with items list."""
-    check_autobidding(27, 2200)
+    check_autobidding(2, 215)
     deploy_data()
     return render(request, 'items.html')

@@ -341,7 +341,7 @@ class AuctionAutoBid():
             user: str - user name
             item: int - item id
         """
-        user = get_object_or_404(AuctionUser, name=data.get('user'))
+        user = get_object_or_404(AuctionUser, pk=data.get('user'))
         item = get_object_or_404(Item, pk=data.get('item'))
 
         data_add = {'user': user, 'item': item}
@@ -363,6 +363,14 @@ class AuctionAutoBid():
         return sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
 
     def delete(self, data: dict):
+        """
+        Set autobid off for a user-item pair.
+
+        parameters in data:
+            user: str - user name
+            item: int - item id
+        """
+
         user = data['user']
         item = data['item']
 
