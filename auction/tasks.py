@@ -8,7 +8,7 @@ from celery import shared_task
 from celery.task import periodic_task
 from celery.schedules import crontab
 from datetime import timedelta
-from .auction import check_deadlines, check_autobidding
+from .auction import check_deadlines, check_autobidding, AuctionItem
 from .models import Item, Bid
 
 
@@ -19,6 +19,12 @@ def task_send_email(subject, content, recipient_list):
     msg = EmailMessage(subject, content, sender, recipient_list)
     msg.content_subtype = 'html'
     msg.send()
+
+@shared_task
+def task_send_notification(data):
+    print('CELERY TASK: sending notification')
+    if data.get('event') == 'item_won':
+        AuctionItem(data.get('item_id')).notify_winner(data.get('user_id'))
 
 @shared_task
 def task_autobid_on_item(item_id, price):
@@ -36,9 +42,13 @@ def task_check_deadlines():
     print('CELERY TASK: checking deadlines')
     awards = check_deadlines()
     email_subject = 'Congratulations!'
+    data = {'event': 'item_won'}
 
     for award in awards:
         email_content = 'You have been awarded an item ' + award.get('item') + ' at a price ' + str(award.get('price')) + '. Come to webauction.herokuapp.com for more opportunities!'
         email_recipients = [award.get('email')]
+        data['item_id'] = award.get('item_id')
+        data['user_id'] = award.get('user_id')
         task_send_email.delay(email_subject, email_content, email_recipients)
+        task_send_notification.delay(data)
 

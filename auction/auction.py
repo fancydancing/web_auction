@@ -61,6 +61,12 @@ class AuctionItem():
         self.item.close_dt = utils.from_epoch(data.get('close_dt')) or self.item.close_dt
         self.item.save()
 
+        ws_send({
+            'event': 'item_changed',
+            'item_id': self.item.id
+        })
+
+
         return True
 
     def delete(self) -> bool:
@@ -136,6 +142,15 @@ class AuctionItem():
         })
 
         return {'result': True, 'id': new_bid.id}
+
+    def notify_winner(self, user_id):
+        ws_send({
+            'event': 'item_won',
+            'item_title': self.item.title,
+            'user_id': user_id,
+            'price': self.item.price
+        })
+
 
 
 class AuctionList():
@@ -335,11 +350,14 @@ def check_deadlines():
         bids = Bid.objects.filter(item_id=item)
         if len(bids) > 0:
             latest_bid = bids.latest('bid_dt')
-            user_name = latest_bid.user_name
+            user = User.objects.get(name=latest_bid.user_name)
             awards.append({'item': item.title,
-                           'user_name': latest_bid.user_name,
+                           'item_id': item.id,
                            'price': latest_bid.price,
-                           'email': LOGIN_PASS[latest_bid.user_name]['email']})
+                           'user_name': user.name,
+                           'user_id': user.id,
+                           'email': user.email
+                           })
         else:
             user_name = None
 
