@@ -88,4 +88,8 @@ export interface ServerMsg {
     item_id?: number;
 
     event?: string;
+
+    user_id?: number;
+
+    item_title?: string;
 }

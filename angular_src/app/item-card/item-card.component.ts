@@ -118,7 +118,7 @@ export class ItemCardComponent implements OnInit {
 
     messageHandler(msg) {
         // this.alertDialog.open(msg.item_id.toString())
-        if (msg.item_id == this.item_id) {
+        if (msg.item_id == this.item_id && msg.event == 'new_bid') {
             this.updateCard();
         }
     }
