@@ -12,6 +12,10 @@ export interface AucItem {
 
     // Item closing epoch time
     close_dt?: number;
+
+    awarded_user?: string;
+
+    expired?: boolean;
 }
 
 export interface AucUserItem {
@@ -22,6 +26,14 @@ export interface AucUserItem {
     status?: string;
     user_price?: number;
     max_price?: number;
+}
+
+export interface UserInfo {
+    id?: number;
+    name?: string;
+    email?: string;
+    autobid_total_sum?: number;
+    autobid_alert_perc?: number;
 }
 
 export interface AucItems {

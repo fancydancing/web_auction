@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, EventEmitter,  Output } from '@angular/core';
-import { AucItem, Bid, ServerResponse, ItemCardEvent, AucUserItem, MainView } from '../item';
+import { AucItem, Bid, ServerResponse, ItemCardEvent, AucUserItem, MainView, UserInfo } from '../item';
 import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
@@ -14,6 +14,7 @@ import { FormGroup, FormBuilder } from '@angular/forms';
   styles: []
 })
 export class UserPageComponent implements OnInit {
+    userInfo: UserInfo = null;
     mode: String = MainView.List;
 
     // Pass enum MainView to template
@@ -27,7 +28,11 @@ export class UserPageComponent implements OnInit {
 
     wonDisplayedColumns: string[] = ['item', 'user_price', 'close_dt'];
 
-    lastDisplayedColumns: string[] = ['status', 'item', 'user_price', 'close_dt'];
+    lastDisplayedColumns: string[] = ['status', 'item', 'user_price', 'dt'];
+
+    // Form for editing user profile
+    form: FormGroup;
+    email = new FormControl('', [Validators.email]);
 
     constructor(
         private rpcService: RpcService,
@@ -37,15 +42,59 @@ export class UserPageComponent implements OnInit {
     ) { }
 
     ngOnInit() {
+        // Forms config. Validators setup
+        this.form = this.formBuilder.group({
+            emailControl: [
+                null,
+                Validators.compose([
+                    Validators.email
+                ])
+            ],
+
+            autobidTotalSum: [
+                null,
+                Validators.compose([
+                    Validators.min(0),
+                    Validators.max(100000)
+                ])
+            ],
+            autobidAlertPerc: [
+                null,
+                Validators.compose([
+                    Validators.min(0),
+                    Validators.max(100)
+                ])
+            ],
+        });
+
         this.updateUserPage();
     }
 
+    getErrorMessage() {
+          return this.email.hasError('email') ? 'Not a valid email' : '';
+    }
+
     updateUserPage() {
-        this.rpcService.getUserItems({'status': 'won'})
+        this.rpcService.getUser(this.helpersService.getUserId())
+            .subscribe(userInfo => this.userInfo = userInfo);
+
+        this.rpcService.getUserItems({'status': 'won', 'sort': 'close_dt'})
             .subscribe(items => this.won_items = items);
 
-        this.rpcService.getUserItems({})
+        this.rpcService.getUserItems({'sort': 'bid_dt'})
             .subscribe(items => this.items = items);
+    }
+
+    updateUserInfo() {
+        if (!this.form.valid) {
+            this.helpersService.validateAllFormFields(this.form);
+            return;
+        }
+
+        this.rpcService.updateUserInfo(this.userInfo)
+            .subscribe(
+                () => {}
+            );
     }
 
     getUserName() {

@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
 import { DatePipe } from '@angular/common'
 
+import { FormControl, FormGroup } from '@angular/forms';
+
+
 @Injectable({ providedIn: 'root' })
 export class HelpersService {
 
@@ -61,6 +64,10 @@ export class HelpersService {
         return this.cookieService.get('auction_user_name');
     }
 
+    getUserId(): number {
+        return parseInt(this.cookieService.get('auction_user_id'), 10);
+    }
+
     /**
      * Check if current user is admin
      * @returns boolean If current user is admin
@@ -80,5 +87,20 @@ export class HelpersService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Validate whole form
+     * @param formGroup form group for validation
+     */
+    validateAllFormFields(formGroup: FormGroup) {
+        Object.keys(formGroup.controls).forEach(field => {
+            const control = formGroup.get(field);
+            if (control instanceof FormControl) {
+                control.markAsTouched({ onlySelf: true });
+            } else if (control instanceof FormGroup) {
+                this.validateAllFormFields(control);
+            }
+        });
     }
 }

@@ -6,7 +6,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { AucItem, AucItems, ServerResponse, Bid, AucUserItem } from '../item';
+import { AucItem, AucItems, ServerResponse, Bid, AucUserItem, UserInfo } from '../item';
 
 
 @Injectable({ providedIn: 'root' })
@@ -51,6 +51,7 @@ export class RpcService {
 
         let ps = {
             'user': user_name,
+            'sort': params.sort ? params.sort : 'close_dt',
             'status': null
         };
 
@@ -58,7 +59,7 @@ export class RpcService {
             ps['status'] = params.status;
         }
 
-        let itemsUrl = 'api/user/bids';
+        let itemsUrl = 'api/users/bids';
         return this.http.get<AucUserItem[]>(itemsUrl, { params: ps })
             .pipe(
                 catchError(this.handleError<AucUserItem[]>('getUserItems', []))
@@ -86,7 +87,15 @@ export class RpcService {
         const url = `api/items/${item_id}`;
         return this.http.get<AucItem>(url)
             .pipe(
-                catchError(this.handleError<AucItem>('item_id', null))
+                catchError(this.handleError<AucItem>('getItem', null))
+            );
+    }
+
+    getUser(user_id: Number): Observable<UserInfo> {
+        const url = `api/users/${user_id}`;
+        return this.http.get<UserInfo>(url)
+            .pipe(
+                catchError(this.handleError<UserInfo>('getUser', null))
             );
     }
 
@@ -136,6 +145,14 @@ export class RpcService {
         return this.http.put(url, item, this.httpOptions)
             .pipe(
                 catchError(this.handleError('updateItem'))
+            );
+    }
+
+    updateUserInfo(userInfo: UserInfo): Observable<{}> {
+        const url = 'api/users/' + userInfo.id.toString(10);
+        return this.http.put(url, userInfo, this.httpOptions)
+            .pipe(
+                catchError(this.handleError('updateUserInfo'))
             );
     }
 

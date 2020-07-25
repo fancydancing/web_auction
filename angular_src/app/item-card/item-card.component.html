@@ -12,7 +12,7 @@
     </div>
 
     <div
-        *ngIf="countdown_init && item.id"
+        *ngIf="countdown_init && item.id && !item.expired"
         class="time-left"
     >
         <span>Time left: </span>
@@ -63,6 +63,7 @@
             ></textarea>
         </mat-form-field>
 
+        <div *ngIf="!item.expired">
         <br />
 
         <mat-form-field
@@ -138,9 +139,11 @@
             type="submit"
         >Add item</button>
 
+        </div>
+
     </form>
 
-    <div *ngIf="!edit_mode">
+    <div *ngIf="!edit_mode && !item.expired">
         <form [formGroup]="formBid">
             <mat-form-field class="example-full-width">
                 <mat-label>Bid, $</mat-label>

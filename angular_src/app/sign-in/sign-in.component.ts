@@ -39,6 +39,7 @@ export class SignInComponent implements OnInit {
     signInHandler(res): void {
         if (res.result == true) {
             this.cookieService.set('auction_user_name', res.login);
+            this.cookieService.set('auction_user_id', res.id);
             this.cookieService.set('auction_role', res.role);
             this.signInEvent.emit('logged');
         } else {
