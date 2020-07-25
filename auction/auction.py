@@ -116,6 +116,7 @@ class AuctionItem():
         price = data.get('price')
         user_name = data.get('user_name')
         auto = data.get('auto')
+        notify_previous = False
 
         if self.item.close_dt <= timezone.now():
             result = {'result': False, 'msg': 'Sorry, this lot is already closed.'}
@@ -136,17 +137,30 @@ class AuctionItem():
                 return result
             # Return previous bid sum to user's autobid total amount
             # if it was made by autobid
+            # Also notify previous winner
             else:
-                pass
-
+                prev_winner = get_object_or_404(AuctionUser, name=highest_bid.user_name)
+                previous_price = self.item.price
+                notify_previous = True
 
         data['item_id'] = self.item
         new_bid = Bid.objects.create(**data)
 
+        # Send notification for list refresh
         ws_send({
             'item_id': self.item.id,
             'event': 'new_bid'
         })
+
+        if (notify_previous):
+            ws_send({
+                'event': 'item_losing',
+                'user_id': prev_winner.id,
+                'item_title': self.item.title,
+                'item_price': price,
+                'user_bid_price': previous_price
+                })
+
 
         return {'result': True, 'id': new_bid.id}
 
@@ -380,14 +394,15 @@ def check_autobidding(item_id: int, price: int):
     Automatically set bid on an item for users with autobid set to True.
     """
     users_for_bidding = AuctionAutoBid().get_list(item_id)
-    users_autobid_amounts = User.objects.filter()
 
-    winner = None
+    if len(users_for_bidding) == 0:
+        return
+    else:
+        winner = users_for_bidding[0]
+            
     pre_max_bidder = None
     new_price = price + 1
 
-    if len(users_for_bidding) > 0:
-        winner = users_for_bidding[0]
     if len(users_for_bidding) > 1:
         pre_max_bidder = users_for_bidding[1]
         new_price = pre_max_bidder.autobid_total_sum + 1
