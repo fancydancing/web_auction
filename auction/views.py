@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import get_object_or_404
 
-from .auction import AuctionItem, Authorization, AuctionList, AuctionUserInfo, AuctionAutoBid
+from .auction import AuctionItem, Authorization, AuctionList, AuctionUserInfo, AuctionAutoBid, check_autobidding
 from .models import Item, AuctionUser
 from .forms import ItemListForm, ItemForm
 from .deploy_db import deploy_data
@@ -103,7 +103,7 @@ def read_item(pk: int) -> HttpResponse:
     pk: int - item ID
     """
     result = AuctionItem(pk).read()
-    return HttpResponse(json.dumps(result),content_type='text/json')
+    return HttpResponse(json.dumps(result), content_type='text/json')
 
 
 def item_info_view(request, pk) -> HttpResponse:
@@ -179,7 +179,7 @@ def item_bids_view(request, pk: int) -> HttpResponse:
 def item_set_autobid(request, pk: int):
     """
     Set or unset autobid on an item for a particular user
-    
+
     pk: int - item for autobid
 
     Parameters in request:
@@ -189,14 +189,14 @@ def item_set_autobid(request, pk: int):
     data = {'user': request.GET.get('user_name'),
             'item': pk
         }
-    
+
     if request.GET.get('auto_bid'):
         res = AuctionAutoBid().add(data)
     else:
         res = AuctionAutoBid().delete(data)
 
     result = {'result': res}
-    
+
     return HttpResponse(json.dumps(result), content_type='text/json')
 
 def user_bids(request):
@@ -247,10 +247,16 @@ def user_info_view(request, pk) -> HttpResponse:
     # Read user info
     elif request.method == 'GET':
         return read_user(pk)
-        
+
+
+def item_info_for_user(pk_user: int, pk_item: int) -> dict:
+    exists = AuctionAutoBid.filter(user__id=pk_user, item__id=pk_item)
+    autobid = len(exists) > 0
+    return {'autobid': autobid}
 
 
 def index_view(request) -> HttpResponse:
     """Show start page with items list."""
+    check_autobidding(27, 2200)
     deploy_data()
     return render(request, 'items.html')

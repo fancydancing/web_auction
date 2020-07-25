@@ -238,11 +238,21 @@ class AuctionList():
         }
 
 class AuctionUserInfo():
-
     def __init__(self, user_id=None):
         self.user = None
         if user_id is not None:
             self.user = get_object_or_404(AuctionUser, pk=user_id)
+
+    def get_spent_autobid_sum(self) -> int:
+        bids_qs = Bid.objects.filter(user_name=self.user.name, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
+        autobid_spent = 0
+
+        for bid in bids_qs:
+            # Count only winning bids
+            if bid.price == bid.item_id.price and bid.auto:
+                autobid_spent += bid.price
+
+        return autobid_spent
 
 
     def get_bids_list(self, data) -> list:
@@ -285,6 +295,7 @@ class AuctionUserInfo():
                 'max_price': bid.item_id.price
             })
         return result
+
 
 
     def read(self) -> dict:
@@ -335,7 +346,16 @@ class AuctionAutoBid():
 
     def get_list(self, item_id: int):
         users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
-        return users.values_list('user__id', flat=True)
+        print(item_id)
+        all = AutoBid.objects.all()
+        for b in all:
+            print(b.item.id)
+        result = []
+        for user in users:
+            result.append({'user_id': user.id,
+                           'free_autobid_sum': user.autobid_total_sum - AuctionUserInfo(winner.id).get_spent_autobid_sum()
+                           })
+        return sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
 
     def delete(self, data: dict):
         user = data['user']
@@ -397,6 +417,7 @@ def check_autobidding(item_id: int, price: int):
     Automatically set bid on an item for users with autobid set to True.
     """
     users_for_bidding = AuctionAutoBid().get_list(item_id)
+    print(users_for_bidding)
 
     if len(users_for_bidding) == 0:
         return
@@ -406,13 +427,19 @@ def check_autobidding(item_id: int, price: int):
     pre_max_bidder = None
     new_price = price + 1
 
-    # TODO: two winners
+    # TODO: two winners?
     if len(users_for_bidding) > 1:
         pre_max_bidder = users_for_bidding[1]
         new_price = pre_max_bidder.autobid_total_sum + 1
 
+    winner_spent_autobids_sum = AuctionUserInfo(winner.id).get_spent_autobid_sum()
+
+    if new_price > (winner.autobid_total_sum - winner_spent_autobids_sum):
+        pass
+
     item = AuctionItem(item_id)
     data = {'user': winner.name, 'price': new_price, 'auto': True}
-    item.set_bid(data)
+    # item.set_bid(data)
+    print(data)
 
     return {}
