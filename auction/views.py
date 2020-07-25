@@ -240,7 +240,7 @@ def user_info_view(request, pk) -> HttpResponse:
     """
     # Edit user info
     if request.method == 'PUT':
-        return update_user(request)
+        return update_user(request, pk)
     # Read user info
     elif request.method == 'GET':
         return read_user(pk)

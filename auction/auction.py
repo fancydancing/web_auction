@@ -205,18 +205,19 @@ class AuctionUserInfo():
             self.user = get_object_or_404(AuctionUser, pk=user_id)
 
 
-
     def get_bids_list(self, data) -> list:
         """
         Return a list of current bids of a user.
         """
-        status = data.get('status')
         user_name = data.get('user')
+        status = data.get('status')
+        sort = data.get('sort')
 
         bids_qs = Bid.objects.filter(user_name=user_name).order_by('item_id', '-bid_dt').distinct('item_id')
-        # bids_qs = sorted(bids_qs_init, key=operator.attrgetter('bid_dt'), reverse=True)
+        bids_ids = bids_qs.values_list('id', flat=True)
 
-        print(bids_qs)
+        if sort == 'close_dt':
+            bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('item_id__close_dt')
 
         if status == 'won':
             bids_qs = bids_qs.filter(item_id__awarded_user=user_name)
