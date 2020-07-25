@@ -76,7 +76,9 @@ class AuctionItem():
             'description': self.item.description,
             'create_dt': utils.to_epoch(self.item.create_dt),
             'close_dt': utils.to_epoch(self.item.close_dt),
-            'price': self.item.price
+            'price': self.item.price,
+            'expired': self.item.expired,
+            'awarded_user': self.item.awarded_user
         }
 
     def get_bids(self) -> list:
@@ -190,7 +192,7 @@ class AuctionList():
                 'description': item.description,
                 'create_dt': utils.to_epoch(item.create_dt),
                 'close_dt': utils.to_epoch(item.close_dt),
-                'price': item.price,
+                'price': item.price
             })
         return {
             'items': items,
