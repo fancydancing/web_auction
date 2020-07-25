@@ -157,6 +157,7 @@ class AuctionItem():
             ws_send({
                 'event': 'item_losing',
                 'user_id': prev_winner.id,
+                'winner_name': user_name,
                 'item_title': self.item.title,
                 'item_price': price,
                 'user_bid_price': previous_price
@@ -373,18 +374,19 @@ def check_deadlines():
         bids = Bid.objects.filter(item_id=item)
         if len(bids) > 0:
             latest_bid = bids.latest('bid_dt')
-            user = AuctionUser.objects.get(name=latest_bid.user_name)
+            winner_name = latest_bid.name
+            user = AuctionUser.objects.get(name=winner_name)
             awards.append({'item': item.title,
                            'item_id': item.id,
                            'price': latest_bid.price,
-                           'user_name': user.name,
+                           'user_name': winner_name,
                            'user_id': user.id,
                            'email': user.email
                            })
         else:
-            user_name = None
+            winner_name = None
 
-        item.awarded_user = user_name
+        item.awarded_user = winner_name
         item.expired = True
         item.save()
 
