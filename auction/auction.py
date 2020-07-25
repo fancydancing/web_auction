@@ -152,6 +152,7 @@ class AuctionItem():
             'event': 'new_bid'
         })
 
+        # Send notification for previous winner
         if (notify_previous):
             ws_send({
                 'event': 'item_losing',
@@ -372,7 +373,7 @@ def check_deadlines():
         bids = Bid.objects.filter(item_id=item)
         if len(bids) > 0:
             latest_bid = bids.latest('bid_dt')
-            user = User.objects.get(name=latest_bid.user_name)
+            user = AuctionUser.objects.get(name=latest_bid.user_name)
             awards.append({'item': item.title,
                            'item_id': item.id,
                            'price': latest_bid.price,
@@ -402,7 +403,8 @@ def check_autobidding(item_id: int, price: int):
             
     pre_max_bidder = None
     new_price = price + 1
-
+    
+    # TODO: two winners
     if len(users_for_bidding) > 1:
         pre_max_bidder = users_for_bidding[1]
         new_price = pre_max_bidder.autobid_total_sum + 1
@@ -411,3 +413,4 @@ def check_autobidding(item_id: int, price: int):
     data = {'user': winner.name, 'price': new_price, 'auto': True}
     item.set_bid(data)
     
+    return {}
