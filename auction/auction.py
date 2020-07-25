@@ -110,10 +110,12 @@ class AuctionItem():
         parameters in data:
             price: int - bid value
             user_name: str - user making a bid
+            auto: bool - autobid
         """
 
         price = data.get('price')
         user_name = data.get('user_name')
+        auto = data.get('auto')
 
         if self.item.close_dt <= timezone.now():
             result = {'result': False, 'msg': 'Sorry, this lot is already closed.'}
@@ -126,12 +128,17 @@ class AuctionItem():
 
         bids_qs = Bid.objects.filter(item_id=self.item).order_by('-bid_dt')
 
-        # User cannot make a bid if his bid is already the highest
         if bids_qs.count() > 0:
             highest_bid = bids_qs[0]
+            # User cannot make a bid if his bid is already the highest
             if user_name == highest_bid.user_name:
                 result = {'result': False, 'msg': 'Your bid is already the highest.'}
                 return result
+            # Return previous bid sum to user's autobid total amount
+            # if it was made by autobid
+            else:
+                pass
+
 
         data['item_id'] = self.item
         new_bid = Bid.objects.create(**data)
@@ -307,11 +314,12 @@ class AuctionAutoBid():
 
         data_add = {'user': user, 'item': item}
         new_autobid = AutoBid.objects.create(**data_add)
-        return new_autobid
+
+        return True
 
     def get_list(self, item_id: int):
         users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
-        return users
+        return users.values_list('user__id', flat=True)
 
     def delete(self, data: dict):
         user = data['user']
@@ -368,15 +376,23 @@ def check_deadlines():
     return awards
 
 def check_autobidding(item_id: int, price: int):
+    """
+    Automatically set bid on an item for users with autobid set to True.
+    """
     users_for_bidding = AuctionAutoBid().get_list(item_id)
-    item = AuctionItem(item_id)
-    new_price = price + 1
-    data = {}
-    
-    for user in users_for_bidding:
-        data['user'] = user.name
-        data['price'] = new_price
-        item.set_bid(data)
-        new_price += 1    
+    users_autobid_amounts = User.objects.filter()
 
+    winner = None
+    pre_max_bidder = None
+    new_price = price + 1
+
+    if len(users_for_bidding) > 0:
+        winner = users_for_bidding[0]
+    if len(users_for_bidding) > 1:
+        pre_max_bidder = users_for_bidding[1]
+        new_price = pre_max_bidder.autobid_total_sum + 1
+
+    item = AuctionItem(item_id)
+    data = {'user': winner.name, 'price': new_price, 'auto': True}
+    item.set_bid(data)
     

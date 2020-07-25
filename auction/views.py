@@ -176,25 +176,28 @@ def item_bids_view(request, pk: int) -> HttpResponse:
     elif request.method == 'GET':
         return bids_list(pk)
 
-def item_set_autobid(request, item_id: int):
+def item_set_autobid(request, pk: int):
     """
     Set or unset autobid on an item for a particular user
     
-    item_id: int - item for autobid
+    pk: int - item for autobid
 
     Parameters in request:
         user_name: str - user name
         auto_bid: bool - turn autobid on/off
     """
-    data = {'user': request.get('user_name'),
-            'item': item_id
+    data = {'user': request.GET.get('user_name'),
+            'item': pk
         }
     
-    if request.get('auto_bid'):
-        AuctionAutoBid().add(data)
+    if request.GET.get('auto_bid'):
+        res = AuctionAutoBid().add(data)
     else:
-        AuctionAutoBid().delete(data)
+        res = AuctionAutoBid().delete(data)
+
+    result = {'result': res}
     
+    return HttpResponse(json.dumps(result), content_type='text/json')
 
 def user_bids(request):
     """Get user's current bids"""

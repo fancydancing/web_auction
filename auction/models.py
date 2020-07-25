@@ -29,6 +29,7 @@ class Bid(models.Model):
     """Bid model."""
     user_name = models.TextField()
     bid_dt = models.DateTimeField(null=False, default=timezone.now, verbose_name='Set at')
+    auto = models.BooleanField(null=False, default=False)
     item_id = models.ForeignKey(
         Item, models.CASCADE, null=False, verbose_name='Item title'
     )
