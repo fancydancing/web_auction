@@ -17,6 +17,7 @@ export class GalleryComponent implements OnInit {
     // Selected item
     selectedItem: AucItem;
 
+    // Mode of content
     mode: String = MainView.List;
 
     // Pass enum MainView to template
@@ -31,12 +32,16 @@ export class GalleryComponent implements OnInit {
     ngOnInit() {
         this.getItems();
 
+        // Subscribe to frontend messages
         this.communicationService.rootMsgAnnounced$.subscribe(
             msg => this.rootMessageHandler(msg)
         );
     }
 
-    rootMessageHandler(msg) {
+    /**
+     * @param  {string} msg incoming message
+     */
+    rootMessageHandler(msg: string) {
         if (msg == 'close_card') {
             this.setListViewMode(false);
         }

@@ -107,6 +107,9 @@ export class ItemsListComponent implements AfterViewInit  {
         );
     }
 
+    /**
+     * @param  {string} msg incoming message
+     */
     rootMessageHandler(msg) {
         if (msg == 'close_card') {
             this.setListViewMode(false);

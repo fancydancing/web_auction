@@ -1,7 +1,11 @@
 export interface AucItem {
+    // Item ID
     id?: number;
+
+    // Item title
     title?: string;
 
+    // Item description
     description?: string;
 
     // Item current price (max bid)
@@ -13,8 +17,10 @@ export interface AucItem {
     // Item closing epoch time
     close_dt?: number;
 
+    // Awarded user name
     awarded_user?: string;
 
+    // Item auction is closed
     expired?: boolean;
 }
 
@@ -58,6 +64,12 @@ export interface Bid {
     bid_dt: number;
 }
 
+export enum BidStatus {
+    Won = 'won',
+    Lost = 'lost',
+    InProgress = 'in_progress'
+
+}
 
 export interface ServerResponse {
     // True - success
@@ -85,24 +97,33 @@ export enum ItemCardEvent {
 }
 
 export interface ServerMsg {
+    // Event name
     event?: string;
 
+    // User ID
     user_id?: number;
 
+    // User bid for item
     user_bid_price?: number;
 
+    // Item ID
     item_id?: number;
 
+    // Item title
     item_title?: string;
 
+    // Item price
     item_price?: number;
 
+    // Spent money from autobid
     autobid_spent?: number;
 
+    // Total amount of money from autobid
     autobid_total_sum?: number;
 }
 
 export interface UserItem {
+    // Is autobid enabled
     autobid?: boolean;
 }
 

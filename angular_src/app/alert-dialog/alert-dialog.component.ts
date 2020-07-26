@@ -6,9 +6,11 @@ import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
   styles: []
 })
 export class AlertDialogComponent implements OnInit {
-    @Input() state;
+    // Dialog state
+    @Input() state: AlertState;
 
-    @Output() alertDialogEvent: EventEmitter<string> = new EventEmitter<string>();
+    // Channel for sending closing event to parent component
+    @Output() alertDialogEvent: EventEmitter<AlertEvent> = new EventEmitter<AlertEvent>();
 
     constructor() { }
 
@@ -16,15 +18,18 @@ export class AlertDialogComponent implements OnInit {
 
     }
 
+    /**
+     * Close alert dialog
+     */
     close() {
-        this.alertDialogEvent.emit('hide_dialog');
+        this.alertDialogEvent.emit(AlertEvent.HideDialog);
     }
 }
 
 export class AlertDialogState {
-    public state = {
-        showState: false, // show or hide dialog
-        msg: '', // msg to show
+    public state: AlertState = {
+        showState: false,
+        msg: '',
         msg_queue: []
     }
 
@@ -32,8 +37,8 @@ export class AlertDialogState {
      * Handler for events from dialog
      * @param ev Event from dialog
      */
-    public onAlertDialogEvent(ev) {
-        if (ev == 'hide_dialog') {
+    public onAlertDialogEvent(ev: AlertEvent) {
+        if (ev == AlertEvent.HideDialog) {
             this.showNext();
         }
     }
@@ -49,6 +54,9 @@ export class AlertDialogState {
         }
     }
 
+    /**
+     * Show next dialog in queue
+     */
     public showNext() {
         let m = this.state.msg_queue.shift();
         if (m) {
@@ -59,3 +67,21 @@ export class AlertDialogState {
         }
     }
 }
+
+export enum AlertEvent {
+    // Events for alert dialog
+
+    HideDialog = 'hide_dialog',
+}
+
+
+export interface AlertState {
+    // Alert dialog state
+
+    showState: boolean; // show or hide dialog
+
+    msg: string; // current msg to show
+
+    msg_queue: Array<string>; // queue of messages
+}
+

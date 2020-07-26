@@ -64,6 +64,10 @@ export class HelpersService {
         return this.cookieService.get('auction_user_name');
     }
 
+    /**
+     * Get current user id from cookie
+     * @returns number Current user id
+     */
     getUserId(): number {
         return parseInt(this.cookieService.get('auction_user_id'), 10);
     }

@@ -146,6 +146,7 @@
                 *matCellDef="let row"
                 style="padding-left: 10px;"
                 [style.color]="getColorForPrice(row)"
+                [matTooltip]="getTooltipForPrice(row)"
             >${{ row.user_price }}</td>
         </ng-container>
 

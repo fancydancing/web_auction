@@ -10,9 +10,13 @@ import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
   styles: []
 })
 export class SignInComponent implements OnInit {
+    // User login
     login: string;
+
+    // User password
     password: string;
 
+    // Alert dialog
     alertDialog: AlertDialogState = new AlertDialogState();
 
     @Output() signInEvent: EventEmitter<string> = new EventEmitter<string>();
@@ -26,6 +30,9 @@ export class SignInComponent implements OnInit {
 
     }
 
+    /**
+     * Handler for sign in submit
+     */
     signIn(): void {
         if (!this.login || !this.password) {
             this.alertDialog.open('Empty login or password');
@@ -36,6 +43,10 @@ export class SignInComponent implements OnInit {
             .subscribe(res => this.signInHandler(res));
     }
 
+    /**
+     * Handler for result from server
+     * @param  {} res Sign in result from server
+     */
     signInHandler(res): void {
         if (res.result == true) {
             this.cookieService.set('auction_user_name', res.login);
