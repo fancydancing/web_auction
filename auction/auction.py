@@ -18,11 +18,11 @@ from celery import current_app
 ALL_ITEMS = -1
 
 # Users allowed to login
-LOGIN_PASS = {
-    'admin': {'password': 'admin', 'role': 'admin', 'email': 'webauctiontesting+admin@gmail.com'},
-    'user': {'password': 'user', 'role': 'user', 'email': 'webauctiontesting+user@gmail.com'},
-    'user2': {'password': 'user2', 'role': 'user', 'email': 'webauctiontesting+user2@gmail.com'}
-    }
+# LOGIN_PASS = {
+#     'admin': {'password': 'admin', 'role': 'admin', 'email': 'webauctiontesting+admin@gmail.com'},
+#     'user': {'password': 'user', 'role': 'user', 'email': 'webauctiontesting+user@gmail.com'},
+#     'user2': {'password': 'user2', 'role': 'user', 'email': 'webauctiontesting+user2@gmail.com'}
+#     }
 
 
 def celery_send_task(p):
@@ -123,6 +123,7 @@ class AuctionItem():
         user_name = data.get('user_name')
         auto = data.get('auto')
         notify_previous = False
+        prev_winner = None
 
         if self.item.close_dt <= timezone.now():
             result = {'result': False, 'msg': 'Sorry, this lot is already closed.'}
@@ -141,16 +142,20 @@ class AuctionItem():
             if user_name == highest_bid.user_name:
                 result = {'result': False, 'msg': 'Your bid is already the highest.'}
                 return result
-            # Return previous bid sum to user's autobid total amount
-            # if it was made by autobid
-            # Also notify previous winner
             else:
                 prev_winner = get_object_or_404(AuctionUser, name=highest_bid.user_name)
                 previous_price = self.item.price
+                # Return previous bid sum to user's autobid total amount if it was made by autobid
+                if highest_bid.auto:
+                    AuctionUserInfo(prev_winner.id).update_auto_bid(previous_price)
+                # Notify previous winner
                 notify_previous = True
 
         data['item_id'] = self.item
         new_bid = Bid.objects.create(**data)
+
+        if not auto:
+            next_bid = check_autobidding(self.item.id, self.item.price)
 
         # Send notification for list refresh
         celery_send_task({
@@ -259,7 +264,6 @@ class AuctionUserInfo():
 
         return autobid_spent
 
-
     def get_bids_list(self, data) -> list:
         """
         Return a list of current bids of a user.
@@ -302,7 +306,6 @@ class AuctionUserInfo():
         return result
 
 
-
     def read(self) -> dict:
         """Read user info."""
         return {
@@ -331,6 +334,15 @@ class AuctionUserInfo():
 
         return True
 
+    def update_auto_bid(self, amount: int) -> int:
+        """
+        Update autobid total sum by an amount.
+        """
+        self.user.autobid_total_sum = self.user.autobid_total_sum + amount
+        self.user.save()
+
+        return self.user.autobid_total_sum
+
 
 class AuctionAutoBid():
     def add(self, data: dict) -> int:
@@ -350,16 +362,21 @@ class AuctionAutoBid():
         return {'result': True, 'auto_bid_state': True}
 
     def get_list(self, item_id: int):
-        users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
-        print(item_id)
-        all = AutoBid.objects.all()
-        for b in all:
-            print(b.item.id)
+        autobid_users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
+        user_ids = autobid_users.values_list('user__id', flat=True)
+        users = AuctionUser.objects.filter(id__in=user_ids)
+        item = get_object_or_404(Item, id=item_id)
         result = []
         for user in users:
-            result.append({'user_id': user.id,
-                           'free_autobid_sum': user.autobid_total_sum - AuctionUserInfo(winner.id).get_spent_autobid_sum()
-                           })
+            # Do not include user whose bid is highest for now?
+            # if user.id == user_id:
+            free_autobid_sum = user.autobid_total_sum - AuctionUserInfo(user.id).get_spent_autobid_sum()
+            # Include only users who can make a higher bid
+            if free_autobid_sum > item.price:
+                result.append({'user_id': user.id,
+                            'user_name': user.name,
+                            'free_autobid_sum': free_autobid_sum
+                            })
         return sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
 
     def delete(self, data: dict):
@@ -431,29 +448,25 @@ def check_autobidding(item_id: int, price: int):
     Automatically set bid on an item for users with autobid set to True.
     """
     users_for_bidding = AuctionAutoBid().get_list(item_id)
-    print(users_for_bidding)
 
     if len(users_for_bidding) == 0:
         return
     else:
         winner = users_for_bidding[0]
+        winner_sum = winner.get('free_autobid_sum')
 
     pre_max_bidder = None
     new_price = price + 1
 
-    # TODO: two winners?
-    if len(users_for_bidding) > 1:
-        pre_max_bidder = users_for_bidding[1]
-        new_price = pre_max_bidder.autobid_total_sum + 1
-
-    winner_spent_autobids_sum = AuctionUserInfo(winner.id).get_spent_autobid_sum()
-
-    if new_price > (winner.autobid_total_sum - winner_spent_autobids_sum):
-        pass
+    # Calculate new price: overbid the second winner by 1
+    for bid_user in users_for_bidding[1:]:
+        pre_max_sum = bid_user.get('free_autobid_sum')
+        if pre_max_sum < winner_sum:
+            new_price = pre_max_sum + 1
+            break
 
     item = AuctionItem(item_id)
-    data = {'user': winner.name, 'price': new_price, 'auto': True}
-    # item.set_bid(data)
-    print(data)
+    data = {'user_name': winner.get('user_name'), 'price': new_price, 'auto': True}
+    item.set_bid(data)
 
-    return {}
+    return data

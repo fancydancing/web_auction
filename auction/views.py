@@ -250,13 +250,13 @@ def user_info_view(request, pk) -> HttpResponse:
 
 
 def item_info_for_user(request, pk_user: int, pk_item: int) -> dict:
-    exists = AuctionAutoBid.filter(user__id=pk_user, item__id=pk_item)
+    exists = AutoBid.objects.filter(user__id=pk_user, item__id=pk_item)
     autobid = len(exists) > 0
     return {'autobid': autobid}
 
 
 def index_view(request) -> HttpResponse:
     """Show start page with items list."""
-    check_autobidding(2, 215)
+    # check_autobidding(2, 215)
     deploy_data()
     return render(request, 'items.html')

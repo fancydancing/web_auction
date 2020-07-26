@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.db.models.signals import post_save
+from django.shortcuts import get_object_or_404
 
 class Item(models.Model):
     """Item model."""
@@ -40,12 +41,20 @@ class Bid(models.Model):
 
 def post_save_update_item_price(sender, instance, *args, **kwargs):
     """Updating item price after new bid."""
-    if instance.item_id:
+    if instance.item_id is not None:
         item = instance.item_id
         item.price = instance.price
         item.save()
 
+def post_save_update_autobid_sum(sender, instance, *args, **kwargs):
+    """Updating autobid total sum for user after new autobid."""
+    if instance.auto and instance.user_name is not None:
+        user = get_object_or_404(AuctionUser, name=instance.user_name)
+        user.autobid_total_sum = user.autobid_total_sum - instance.price
+        user.save()
+
 post_save.connect(post_save_update_item_price, sender=Bid)
+post_save.connect(post_save_update_autobid_sum, sender=Bid)
 
 class AuctionUser(models.Model):
     """User model"""
@@ -60,7 +69,7 @@ class AuctionUser(models.Model):
 class AutoBid(models.Model):
     item = models.ForeignKey(
         Item, models.CASCADE, null=False, verbose_name='Item'
-    ) 
+    )
     user = models.ForeignKey(
         AuctionUser, models.CASCADE, null=False, verbose_name='User'
     )
