@@ -1,0 +1,510 @@
+openapi: 3.0.0
+info:
+  description: |
+    This is a simple web auction
+  version: "1.0.0"
+  title: Web auction
+servers:
+  - description: Localhost docker ip
+    url: http://192.168.99.100:8000
+paths:
+  /items:
+    post:
+      tags:
+        - item
+      summary: Add a new item
+      responses:
+        '200':
+          description: Item was created
+      requestBody:
+        $ref: '#/components/requestBodies/Item'
+    get:
+      tags:
+        - item
+      summary: Get list of items
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemsList'
+      parameters:
+        - name: page
+          in: query
+          description: page number, starts at 0
+          schema:
+            type: integer
+            format: int64
+        - name: sort
+          in: query
+          description: sorting field
+          schema:
+            type: string
+            enum:
+              - create_dt
+              - price
+        - name: order
+          in: query
+          description: sorting direction
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: search_string
+          in: query
+          description: full text search
+          schema:
+            type: string
+        - name: show_closed
+          in: query
+          description: true - show closed items. false - hide
+          schema:
+            type: boolean
+            default: true
+        - name: page_size
+          in: query
+          description: Items count on 1 page. -1 - all items
+          schema:
+            type: integer
+            format: int64
+  '/items/{itemId}':
+    get:
+      tags:
+        - item
+      summary: Read an existing item
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemRead'
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of item that needs to be readed
+          required: true
+          schema:
+            type: integer
+            format: int64
+    put:
+      tags:
+        - item
+      summary: Update an existing item
+      responses:
+        '200':
+          description: Item was updated
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of item that needs to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        $ref: '#/components/requestBodies/Item'
+  '/items/{itemId}/bids':
+    get:
+      tags:
+        - item
+      summary: Get item bid history
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bid'
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of item
+          required: true
+          schema:
+            type: integer
+            format: int64
+  '/items/{itemId}/auto_bid':
+    post:
+      tags:
+        - item
+      summary: Enable/disable autobid
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                    description: true - successful operation, false - error
+                  auto_bid_state:
+                    type: boolean
+                    example: true
+                    description: true - autobid enabled, false - autobid disabled
+
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of item
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - auto_bid
+              properties:
+                user_id:
+                  type: integer
+                  format: int64
+                  example: 21
+                  description: User ID
+                auto_bid:
+                  type: boolean
+                  example: true
+                  description: true - enable, false - disable autobid
+  '/users/{userId}':
+    get:
+      tags:
+        - user
+      summary: Read an existing user
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      parameters:
+        - name: userId
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+    put:
+      tags:
+        - user
+      summary: Update an existing user
+      responses:
+        '200':
+          description: Item was updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                    description: successful operation
+      parameters:
+        - name: userId
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserBase'
+
+  '/users/{userId}/item/{itemId}':
+    get:
+      tags:
+        - user
+      summary: Read item user info (autobid status)
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autobid:
+                    type: boolean
+                    example: true
+                    description: autobid is enabled or not
+      parameters:
+        - name: userId
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: itemId
+          in: path
+          description: Item ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+  '/users/bids':
+    get:
+      tags:
+        - user
+      summary: Get bids of user
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserItemBid'
+      parameters:
+        - name: sort
+          in: query
+          description: sorting. 'bid_dt' - by bid creation date, 'close_dt' - by item closing date
+          schema:
+            type: string
+            enum:
+              - bid_dt
+              - close_dt
+        - name: user
+          in: query
+          description: User login
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Status of item's bid
+          schema:
+            type: string
+            enum:
+              - won
+  /sign_in:
+    post:
+      tags:
+        - sign_in
+      summary: Sign in
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    description: Successful login
+                    example: true
+                  id:
+                    type: integer
+                    format: int64
+                    description: User ID
+                    example: 23
+                  login:
+                    type: string
+                    description: User login
+                    example: some_login
+                  role:
+                    type: string
+                    description: User role
+                    example: admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: User login
+                  example: some_login
+                password:
+                  type: string
+                  description: User password
+                  example: some_password
+components:
+  schemas:
+    Bid:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 24
+          description: Bid ID
+        user_name:
+          type: string
+          example: Adam Gosling
+        price:
+          type: integer
+          format: int64
+          example: 98
+          description: Bid price
+        bid_dt:
+          type: integer
+          format: int64
+          example: 1595706314
+          description: Epoch time of bid
+    UserBase:
+      type: object
+      properties:
+        email:
+          type: string
+          example: adam.gosling@adamgosling.ag
+          description: User email
+        autobid_total_sum:
+          type: integer
+          format: int64
+          example: 3000
+          description: Money ($) for autobiding
+        autobid_alert_perc:
+          type: integer
+          format: int64
+          example: 75
+          description: Percent of alert notification
+    User:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 23
+              description: User ID
+            name:
+              type: string
+              example: Adam Gosling
+              description: User name/login
+    UserItemBid:
+      type: object
+      properties:
+        item_id:
+          type: integer
+          format: int64
+          example: 33
+          description: Item ID
+        item:
+          type: string
+          example: Harry Potter
+        status:
+          type: string
+          enum:
+            - won
+            - lost
+            - in_progress
+          example: won
+        user_price:
+          type: integer
+          format: int64
+          example: 99
+          description: Current user bid
+        max_price:
+          type: integer
+          format: int64
+          example: 100
+          description: Current max item bid
+        dt:
+          type: integer
+          format: int64
+          example: 1595701314
+          description: Epoch time of bid creation
+        close_dt:
+          type: integer
+          format: int64
+          example: 1595702314
+          description: Epoch time of item auction closing
+    Item:
+      type: object
+      required:
+        - title
+        - price
+        - close_dt
+      properties:
+        title:
+          type: string
+          example: Harry Potter
+        description:
+          type: string
+          example: Children's book
+        price:
+          type: integer
+          format: int64
+          example: 99
+          description: Item current price
+        close_dt:
+          type: integer
+          format: int64
+          example: 1595702314
+          description: epoch time
+    ItemRead:
+      allOf:
+        - $ref: '#/components/schemas/Item'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 23
+              description: Item ID
+            awarded_user:
+              type: string
+              example: Adam Gosling
+              description: Item awarder user name
+            create_dt:
+              type: integer
+              format: int64
+              example: 1595702214
+              description: Epoch time of item creation
+            expired:
+              type: boolean
+              description: Item is closed
+    ItemsList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemOfList'
+          description: List of items
+        total_count:
+          type: integer
+          format: int64
+          example: 7
+          description: Total items count
+    ItemOfList:
+      allOf:
+        - $ref: '#/components/schemas/Item'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 23
+              description: Item ID
+            create_dt:
+              type: integer
+              format: int64
+              example: 1595702214
+              description: Epoch time of item creation
+  requestBodies:
+    Item:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Item'
