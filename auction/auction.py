@@ -90,7 +90,8 @@ class AuctionItem():
             'close_dt': utils.to_epoch(self.item.close_dt),
             'price': self.item.price,
             'expired': self.item.expired,
-            'awarded_user': self.item.awarded_user
+            'awarded_user': self.item.awarded_user,
+            'awarded_user_id': self.item.awarded_user_id
         }
 
     def get_bids(self) -> list:
@@ -103,6 +104,7 @@ class AuctionItem():
                 'id': bid.id,
                 'bid_dt': utils.to_epoch(bid.bid_dt),
                 'price': bid.price,
+                'user_id': bid.user.id,
                 'user_name': bid.user_name
             })
 
@@ -121,6 +123,7 @@ class AuctionItem():
 
         price = data.get('price')
         user_name = data.get('user_name')
+        user = get_object_or_404(AuctionUser, name=user_name)
         auto = data.get('auto')
         notify_previous = False
         prev_winner = None
@@ -139,11 +142,13 @@ class AuctionItem():
         if bids_qs.count() > 0:
             highest_bid = bids_qs[0]
             # User cannot make a bid if his bid is already the highest
-            if user_name == highest_bid.user_name:
+            # if user_name == highest_bid.user_name:
+            if user == highest_bid.user:
                 result = {'result': False, 'msg': 'Your bid is already the highest.'}
                 return result
             else:
-                prev_winner = get_object_or_404(AuctionUser, name=highest_bid.user_name)
+                # prev_winner = get_object_or_404(AuctionUser, name=highest_bid.user_name)
+                prev_winner = highest_bid.user
                 previous_price = self.item.price
                 # Return previous bid sum to user's autobid total amount if it was made by autobid
                 if highest_bid.auto:
@@ -255,7 +260,8 @@ class AuctionUserInfo():
             self.user = get_object_or_404(AuctionUser, pk=user_id)
 
     def get_spent_autobid_sum(self) -> int:
-        bids_qs = Bid.objects.filter(user_name=self.user.name, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
+        # bids_qs = Bid.objects.filter(user_name=self.user.name, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
+        bids_qs = Bid.objects.filter(user=self.user, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
         autobid_spent = 0
 
         for bid in bids_qs:
@@ -270,10 +276,11 @@ class AuctionUserInfo():
         Return a list of current bids of a user.
         """
         user_name = data.get('user')
+        user = get_object_or_404(AuctionUser, name=user_name)
         status = data.get('status')
         sort = data.get('sort')
 
-        bids_qs = Bid.objects.filter(user_name=user_name).order_by('item_id', '-bid_dt').distinct('item_id')
+        bids_qs = Bid.objects.filter(user=user).order_by('item_id', '-bid_dt').distinct('item_id')
         bids_ids = bids_qs.values_list('id', flat=True)
 
         if sort == 'close_dt':
@@ -282,18 +289,18 @@ class AuctionUserInfo():
             bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('-bid_dt')
 
         if status == 'won':
-            bids_qs = bids_qs.filter(item_id__awarded_user=user_name)
+            # bids_qs = bids_qs.filter(item_id__awarded_user=user_name)
+            bids_qs = bids_qs.filter(item_id__awarded_user_id=user)
         result = []
 
         for bid in bids_qs:
             status = ''
 
-            if bid.item_id.awarded_user == user_name:
-                status = 'won'
-            elif bid.item_id.awarded_user == '':
-                status = 'in_progress'
+            # if bid.item_id.awarded_user == user_name:
+            if bid.item_id.expired:
+                status = 'won' if bid.item_id.awarded_user_id == user else 'lost'
             else:
-                status = 'lost'
+                status = 'in_progress'
 
             result.append({
                 'item_id': bid.item_id.id,
@@ -429,23 +436,29 @@ def check_deadlines():
     expired_items = Item.objects.filter(expired=False, close_dt__lte=timezone.now())
 
     awards = []
+    losers = []
     for item in expired_items:
         bids = Bid.objects.filter(item_id=item)
         if len(bids) > 0:
             latest_bid = bids.latest('bid_dt')
-            winner_name = latest_bid.user_name
-            user = AuctionUser.objects.get(name=winner_name)
+            winner = latest_bid.user
+            winner_name = winner.name
             awards.append({'item': item.title,
                            'item_id': item.id,
                            'price': latest_bid.price,
                            'user_name': winner_name,
-                           'user_id': user.id,
-                           'email': user.email
+                           'user_id': winner.id,
+                           'email': winner.email
                            })
+
+            # losers = Bid.objects.filter(item_id=item, ).
+
+            # for loser in bids[1:]:
         else:
             winner_name = None
 
         item.awarded_user = winner_name
+        item.awarded_user_id = winner
         item.expired = True
         item.save()
 
