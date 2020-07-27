@@ -155,7 +155,7 @@ class AuctionItem():
         new_bid = Bid.objects.create(**data)
 
         if not auto:
-            next_bid = check_autobidding(self.item.id, self.item.price)
+            check_autobidding()
 
         # Send notification for list refresh
         celery_send_task({
@@ -361,7 +361,14 @@ class AuctionAutoBid():
 
         return {'result': True, 'auto_bid_state': True}
 
-    def get_list(self, item_id: int):
+    def get_items_list(self):
+        autobid_items_ids = AutoBid.objects.distinct('item').values_list('item', flat=True)
+        autobid_items = Item.objects.filter(id__in=autobid_items_ids).order_by('close_dt')
+        # autobid_items = AutoBid.objects.distinct('item').values('item')
+        print(autobid_items)
+        return autobid_items
+
+    def get_users_list(self, item_id: int):
         autobid_users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
         user_ids = autobid_users.values_list('user__id', flat=True)
         users = AuctionUser.objects.filter(id__in=user_ids)
@@ -442,15 +449,39 @@ def check_deadlines():
 
     return awards
 
+def check_autobidding():
+    """
+    Go through all items where at least one user has autobidding option on.
+    Make all necessary bids and check items again.
+    Stop when there are no new bids.
+    """
+    items = AuctionAutoBid().get_items_list()
 
-def check_autobidding(item_id: int, price: int):
+    result = False
+    for item in items:
+        print('Start checking for item ' + item)
+        item_result = check_autobidding_for_item(item.id, item.price)
+        result = result or item_result
+        print('item result = ' + item_result)
+        print('result = ' + result)
+
+    return True
+
+    # if result:
+    #     check_autobidding()
+    # else:
+    #     return True
+
+def check_autobidding_for_item(item_id: int, price: int) -> bool:
     """
     Automatically set bid on an item for users with autobid set to True.
+    Returns True if any bid was set, False otherwise.
     """
-    users_for_bidding = AuctionAutoBid().get_list(item_id)
+    users_for_bidding = AuctionAutoBid().get_users_list(item_id)
 
     if len(users_for_bidding) == 0:
-        return
+        print('no users')
+        return False
     else:
         winner = users_for_bidding[0]
         winner_sum = winner.get('free_autobid_sum')
@@ -467,6 +498,7 @@ def check_autobidding(item_id: int, price: int):
 
     item = AuctionItem(item_id)
     data = {'user_name': winner.get('user_name'), 'price': new_price, 'auto': True}
+    print(data)
     item.set_bid(data)
-
-    return data
+    print('bid made')
+    return True
