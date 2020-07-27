@@ -259,5 +259,10 @@ def item_info_for_user(request, pk_user: int, pk_item: int) -> dict:
 def index_view(request) -> HttpResponse:
     """Show start page with items list."""
     # check_autobidding(2, 215)
+    items = AuctionAutoBid().get_items_list()
+    print('----1.4----')
+    for item in items:
+        print(item)
+    print('----1.5----')
     deploy_data()
     return render(request, 'items.html')

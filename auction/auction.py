@@ -80,7 +80,7 @@ class AuctionItem():
         self.item.delete()
         return True
 
-    def read(self) -> dict:
+    def read(self, data=None) -> dict:
         """Read an item."""
         return {
             'id': self.item.id,
@@ -90,7 +90,8 @@ class AuctionItem():
             'close_dt': utils.to_epoch(self.item.close_dt),
             'price': self.item.price,
             'expired': self.item.expired,
-            'awarded_user': self.item.awarded_user
+            'awarded_user': self.item.awarded_user,
+            'awarded_user_id': self.item.awarded_user_id
         }
 
     def get_bids(self) -> list:
@@ -103,6 +104,7 @@ class AuctionItem():
                 'id': bid.id,
                 'bid_dt': utils.to_epoch(bid.bid_dt),
                 'price': bid.price,
+                'user_id': bid.user.id,
                 'user_name': bid.user_name
             })
 
@@ -121,6 +123,7 @@ class AuctionItem():
 
         price = data.get('price')
         user_name = data.get('user_name')
+        user = get_object_or_404(AuctionUser, name=user_name)
         auto = data.get('auto')
         notify_previous = False
         prev_winner = None
@@ -139,11 +142,13 @@ class AuctionItem():
         if bids_qs.count() > 0:
             highest_bid = bids_qs[0]
             # User cannot make a bid if his bid is already the highest
-            if user_name == highest_bid.user_name:
+            # if user_name == highest_bid.user_name:
+            if user == highest_bid.user:
                 result = {'result': False, 'msg': 'Your bid is already the highest.'}
                 return result
             else:
-                prev_winner = get_object_or_404(AuctionUser, name=highest_bid.user_name)
+                # prev_winner = get_object_or_404(AuctionUser, name=highest_bid.user_name)
+                prev_winner = highest_bid.user
                 previous_price = self.item.price
                 # Return previous bid sum to user's autobid total amount if it was made by autobid
                 if highest_bid.auto:
@@ -155,7 +160,7 @@ class AuctionItem():
         new_bid = Bid.objects.create(**data)
 
         if not auto:
-            next_bid = check_autobidding(self.item.id, self.item.price)
+            check_autobidding()
 
         # Send notification for list refresh
         celery_send_task({
@@ -222,6 +227,7 @@ class AuctionList():
             items_qs = items_qs.filter(close_dt__gt=timezone.now())
 
         if self.sort is not None:
+            # if sort ==
             sorting_column = ('' if self.order == 'asc' else '-') + self.sort
             items_qs = items_qs.order_by(sorting_column)
 
@@ -254,7 +260,8 @@ class AuctionUserInfo():
             self.user = get_object_or_404(AuctionUser, pk=user_id)
 
     def get_spent_autobid_sum(self) -> int:
-        bids_qs = Bid.objects.filter(user_name=self.user.name, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
+        # bids_qs = Bid.objects.filter(user_name=self.user.name, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
+        bids_qs = Bid.objects.filter(user=self.user, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
         autobid_spent = 0
 
         for bid in bids_qs:
@@ -269,10 +276,11 @@ class AuctionUserInfo():
         Return a list of current bids of a user.
         """
         user_name = data.get('user')
+        user = get_object_or_404(AuctionUser, name=user_name)
         status = data.get('status')
         sort = data.get('sort')
 
-        bids_qs = Bid.objects.filter(user_name=user_name).order_by('item_id', '-bid_dt').distinct('item_id')
+        bids_qs = Bid.objects.filter(user=user).order_by('item_id', '-bid_dt').distinct('item_id')
         bids_ids = bids_qs.values_list('id', flat=True)
 
         if sort == 'close_dt':
@@ -281,18 +289,18 @@ class AuctionUserInfo():
             bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('-bid_dt')
 
         if status == 'won':
-            bids_qs = bids_qs.filter(item_id__awarded_user=user_name)
+            # bids_qs = bids_qs.filter(item_id__awarded_user=user_name)
+            bids_qs = bids_qs.filter(item_id__awarded_user_id=user)
         result = []
 
         for bid in bids_qs:
             status = ''
 
-            if bid.item_id.awarded_user == user_name:
-                status = 'won'
-            elif bid.item_id.awarded_user == '':
-                status = 'in_progress'
+            # if bid.item_id.awarded_user == user_name:
+            if bid.item_id.expired:
+                status = 'won' if bid.item_id.awarded_user_id == user else 'lost'
             else:
-                status = 'lost'
+                status = 'in_progress'
 
             result.append({
                 'item_id': bid.item_id.id,
@@ -328,8 +336,8 @@ class AuctionUserInfo():
         """
 
         self.user.email = data.get('email', self.user.email)
-        self.user.autobid_total_sum = data.get('autobid_total_sum', self.user.autobid_total_sum)
-        self.user.autobid_alert_perc = data.get('autobid_alert_perc', self.user.autobid_alert_perc)
+        self.user.autobid_total_sum = int(data.get('autobid_total_sum', self.user.autobid_total_sum))
+        self.user.autobid_alert_perc = max(100, int(data.get('autobid_alert_perc', self.user.autobid_alert_perc)))
         self.user.save()
 
         return True
@@ -361,7 +369,14 @@ class AuctionAutoBid():
 
         return {'result': True, 'auto_bid_state': True}
 
-    def get_list(self, item_id: int):
+    def get_items_list(self):
+        autobid_items_ids = AutoBid.objects.distinct('item').values_list('item', flat=True)
+        autobid_items = Item.objects.filter(id__in=autobid_items_ids).order_by('close_dt')
+        # autobid_items = AutoBid.objects.distinct('item').values('item')
+        print(autobid_items)
+        return autobid_items
+
+    def get_users_list(self, item_id: int):
         autobid_users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
         user_ids = autobid_users.values_list('user__id', flat=True)
         users = AuctionUser.objects.filter(id__in=user_ids)
@@ -407,6 +422,7 @@ class Authorization():
             res = False
             role = None
             username = None
+            id = None
         else:
             res = True
             logged_user = users.get(name=username)
@@ -420,37 +436,67 @@ def check_deadlines():
     expired_items = Item.objects.filter(expired=False, close_dt__lte=timezone.now())
 
     awards = []
+    losers = []
     for item in expired_items:
         bids = Bid.objects.filter(item_id=item)
         if len(bids) > 0:
             latest_bid = bids.latest('bid_dt')
-            winner_name = latest_bid.user_name
-            user = AuctionUser.objects.get(name=winner_name)
+            winner = latest_bid.user
+            winner_name = winner.name
             awards.append({'item': item.title,
                            'item_id': item.id,
                            'price': latest_bid.price,
                            'user_name': winner_name,
-                           'user_id': user.id,
-                           'email': user.email
+                           'user_id': winner.id,
+                           'email': winner.email
                            })
+
+            # losers = Bid.objects.filter(item_id=item, ).
+
+            # for loser in bids[1:]:
         else:
             winner_name = None
 
         item.awarded_user = winner_name
+        item.awarded_user_id = winner
         item.expired = True
         item.save()
 
     return awards
 
+def check_autobidding():
+    """
+    Go through all items where at least one user has autobidding option on.
+    Make all necessary bids and check items again.
+    Stop when there are no new bids.
+    """
+    items = AuctionAutoBid().get_items_list()
 
-def check_autobidding(item_id: int, price: int):
+    result = False
+    for item in items:
+        print('Start checking for item ' + item)
+        item_result = check_autobidding_for_item(item.id, item.price)
+        result = result or item_result
+        print('item result = ' + item_result)
+        print('result = ' + result)
+
+    return True
+
+    # if result:
+    #     check_autobidding()
+    # else:
+    #     return True
+
+def check_autobidding_for_item(item_id: int, price: int) -> bool:
     """
     Automatically set bid on an item for users with autobid set to True.
+    Returns True if any bid was set, False otherwise.
     """
-    users_for_bidding = AuctionAutoBid().get_list(item_id)
+    users_for_bidding = AuctionAutoBid().get_users_list(item_id)
 
     if len(users_for_bidding) == 0:
-        return
+        print('no users')
+        return False
     else:
         winner = users_for_bidding[0]
         winner_sum = winner.get('free_autobid_sum')
@@ -467,6 +513,7 @@ def check_autobidding(item_id: int, price: int):
 
     item = AuctionItem(item_id)
     data = {'user_name': winner.get('user_name'), 'price': new_price, 'auto': True}
+    print(data)
     item.set_bid(data)
-
-    return data
+    print('bid made')
+    return True
