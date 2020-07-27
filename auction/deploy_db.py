@@ -29,17 +29,17 @@ INSERT INTO auction_auctionuser (id, name, password, role, email, autobid_total_
 
 SELECT pg_catalog.setval('auction_auctionuser_id_seq', 3, true);
 
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (1, 1, 'admin', '2020-07-01 17:29:37.486479+00', 200, 2);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (3, 1, 'admin', '2020-07-02 06:03:56.217496+00', 2100, 1);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (4, 2, 'user', '2020-07-02 07:11:50.330112+00', 215, 2);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (5, 1, 'admin', '2020-07-02 08:06:45.802964+00', 200, 11);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (6, 2, 'user', '2020-07-03 01:48:11.741712+00', 1400, 14);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (7, 3, 'user2', '2020-07-03 02:25:27.263233+00', 4100, 20);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (8, 3, 'user2', '2020-07-03 02:27:54.529646+00', 3800, 23);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (9, 3, 'user2', '2020-07-03 09:35:49.158023+00', 600, 21);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (10, 3, 'user2', '2020-07-03 09:38:43.374303+00', 1150, 15);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (11, 1, 'admin', '2020-07-03 18:33:03.673124+00', 2200, 26);
-INSERT INTO auction_bid (id, user_id, user_name, bid_dt, price, item_id_id) VALUES (12, 1, 'admin', '2020-07-04 09:19:44.914815+00', 2050, 27);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (1, 1, 'admin', '2020-07-01 17:29:37.486479+00', false, 200, 2);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (3, 1, 'admin', '2020-07-02 06:03:56.217496+00', false, 2100, 1);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (4, 2, 'user', '2020-07-02 07:11:50.330112+00', false, 215, 2);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (5, 1, 'admin', '2020-07-02 08:06:45.802964+00', false, 200, 11);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (6, 2, 'user', '2020-07-03 01:48:11.741712+00', false, 1400, 14);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (7, 3, 'user2', '2020-07-03 02:25:27.263233+00', false, 4100, 20);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (8, 3, 'user2', '2020-07-03 02:27:54.529646+00', false, 3800, 23);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (9, 3, 'user2', '2020-07-03 09:35:49.158023+00', false, 600, 21);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (10, 3, 'user2', '2020-07-03 09:38:43.374303+00', false, 1150, 15);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (11, 1, 'admin', '2020-07-03 18:33:03.673124+00', false, 2200, 26);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (12, 1, 'admin', '2020-07-04 09:19:44.914815+00', false, 2050, 27);
 
 SELECT pg_catalog.setval('auction_bid_id_seq', 12, true);
 
