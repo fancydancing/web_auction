@@ -414,6 +414,7 @@ class Authorization():
             res = False
             role = None
             username = None
+            id = None
         else:
             res = True
             logged_user = users.get(name=username)
