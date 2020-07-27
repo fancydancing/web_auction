@@ -27,6 +27,8 @@
             <mat-label>Total auto bid sum</mat-label>
             <input
                 matInput
+                type="number"
+                (keypress)="helpersService.numberOnly($event)"
                 [(ngModel)]="userInfo.autobid_total_sum"
                 formControlName="autobidTotalSum"
             >
@@ -40,6 +42,8 @@
             <mat-label>Auto bid alert percent</mat-label>
             <input
                 matInput
+                type="number"
+                (keypress)="helpersService.numberOnly($event)"
                 [(ngModel)]="userInfo.autobid_alert_perc"
                 formControlName="autobidAlertPerc"
             >
@@ -56,7 +60,7 @@
         >Save changes</button>
     </form>
 
-    <h2>Awarded Items:</h2>
+    <h2>Bills for awarded items:</h2>
 
     <table
         mat-table
