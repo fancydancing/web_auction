@@ -80,8 +80,14 @@ class AuctionItem():
         self.item.delete()
         return True
 
-    def read(self) -> dict:
+    def read(self, data=None) -> dict:
         """Read an item."""
+        if data is not None:
+            user_id = data.get('user_id')
+            autobid_on = len(AutoBid.objects.filter(item=self.item, user__id=user_id)) > 0
+        else:
+            autobid_on = False
+
         return {
             'id': self.item.id,
             'title': self.item.title,
@@ -90,7 +96,8 @@ class AuctionItem():
             'close_dt': utils.to_epoch(self.item.close_dt),
             'price': self.item.price,
             'expired': self.item.expired,
-            'awarded_user': self.item.awarded_user
+            'awarded_user': self.item.awarded_user,
+            'autobid': autobid_on
         }
 
     def get_bids(self) -> list:
