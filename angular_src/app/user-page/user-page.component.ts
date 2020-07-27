@@ -1,12 +1,12 @@
-import { Component, OnInit, Input, EventEmitter,  Output } from '@angular/core';
-import { AucItem, Bid, ServerResponse, ItemCardEvent, AucUserItem, MainView, UserInfo } from '../item';
-import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
+import { Component, OnInit } from '@angular/core';
+import { ItemCardEvent, AucUserItem, MainView, UserInfo, BidStatus } from '../item';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
 import { CommunicationService } from '../communication/communication.service';
 
 import { FormControl, Validators } from '@angular/forms';
 import { FormGroup, FormBuilder } from '@angular/forms';
+
 
 @Component({
   selector: 'user-page',
@@ -15,23 +15,32 @@ import { FormGroup, FormBuilder } from '@angular/forms';
 })
 export class UserPageComponent implements OnInit {
     userInfo: UserInfo = {};
+
+    // Mode of content
     mode: String = MainView.List;
 
     // Pass enum MainView to template
     mainView = MainView;
 
+    // Select Item ID
     selectedItemId: number = null;
 
+    // List of awarded items
     won_items: AucUserItem[];
 
+    // List of recent bids
     items: AucUserItem[];
 
+    // Columns of awarded items table
     wonDisplayedColumns: string[] = ['item', 'user_price', 'close_dt'];
 
+    // Columns of recent bids table
     lastDisplayedColumns: string[] = ['status', 'item', 'user_price', 'dt'];
 
     // Form for editing user profile
     formGroup: FormGroup;
+
+    // Email field form control
     emailFormControl = new FormControl('', [Validators.email]);
 
     constructor(
@@ -74,17 +83,26 @@ export class UserPageComponent implements OnInit {
         );
     }
 
-    rootMessageHandler(msg) {
+    /**
+     * @param  {string} msg incoming message
+     */
+    rootMessageHandler(msg: string): void {
         if (msg == 'close_card') {
             this.setListViewMode(false);
         }
     }
 
-    getErrorMessage() {
+    /**
+     * Get email field error message
+     */
+    getErrorMessage(): string {
           return this.emailFormControl.hasError('email') ? 'Not a valid email' : '';
     }
 
-    updateUserPage() {
+    /**
+     * Reload data for user page
+     */
+    updateUserPage(): void {
         this.rpcService.getUser(this.helpersService.getUserId())
             .subscribe(userInfo => this.userInfo = userInfo);
 
@@ -95,7 +113,10 @@ export class UserPageComponent implements OnInit {
             .subscribe(items => this.items = items);
     }
 
-    updateUserInfo() {
+    /**
+     * Update user info
+     */
+    updateUserInfo(): void {
         if (!this.formGroup.valid) {
             this.helpersService.validateAllFormFields(this.formGroup);
             return;
@@ -107,21 +128,25 @@ export class UserPageComponent implements OnInit {
             );
     }
 
-    getUserName() {
-        return this.helpersService.getUserName();
-    }
-
-    getColorByStatus(status) {
-        if (status == 'won') {
+    /**
+     * Get color for bid
+     * @param  {} status Status of bid
+     */
+    getColorByStatus(status: string): string {
+        if (status == BidStatus.Won) {
             return 'green';
-        } else if (status == 'lost') {
+        } else if (status == BidStatus.Lost) {
             return 'red';
-        } else if (status == 'in_progress') {
+        } else if (status == BidStatus.InProgress) {
             return 'blue';
         }
     }
 
-    getColorForPrice(item: AucUserItem) {
+    /**
+     * Get color for user bid price
+     * @param  {AucUserItem} item Auction item
+     */
+    getColorForPrice(item: AucUserItem): string {
         if (item.close_dt < this.helpersService.getCurrentEpoch()) {
             return 'black';
         }
@@ -133,7 +158,11 @@ export class UserPageComponent implements OnInit {
         }
     }
 
-    getTooltipForPrice(item: AucUserItem) {
+    /**
+     * Get text for tooltip for users bid price
+     * @param  {AucUserItem} item Auction item
+     */
+    getTooltipForPrice(item: AucUserItem): string {
         if (item.close_dt < this.helpersService.getCurrentEpoch()) {
             return 'Auction for item is closed';
         }
@@ -145,29 +174,46 @@ export class UserPageComponent implements OnInit {
         }
     }
 
-    getTextByStatus(status) {
-        if (status == 'won') {
+    /**
+     * Get text status for user bid
+     * @param  {string} status Status of users bid
+     */
+    getTextByStatus(status: string): string {
+        if (status == BidStatus.Won) {
             return 'Won';
-        } else if (status == 'lost') {
+        } else if (status == BidStatus.Lost) {
             return 'Lost';
-        } else if (status == 'in_progress') {
+        } else if (status == BidStatus.InProgress) {
             return 'In progress';
         }
     }
 
-    onSelect(item_id) {
+    /**
+     * Handler for item select in user page
+     * @param  {number} item_id
+     */
+    onSelect(item_id: number): void {
         this.selectedItemId = item_id;
         this.mode = MainView.Item;
     }
 
-    getListViewDisplay() {
+    /**
+     * Get style for list view 'display' option
+     *   'block' - Show list view
+     *   'none' - Show item card
+     */
+    getListViewDisplay(): string {
         if (this.mode == MainView.List) {
             return 'block';
         }
         return 'none';
     }
 
-    onItemCardEvent(ev: ItemCardEvent) {
+    /**
+     * Handler of child item card events
+     * @param ev Event from child item card
+     */
+    onItemCardEvent(ev: ItemCardEvent): void {
         if (ev == ItemCardEvent.NewItemCreated) {
             this.setListViewMode(true);
         } else {
@@ -175,6 +221,10 @@ export class UserPageComponent implements OnInit {
         }
     }
 
+    /**
+     * Switch to list view (from card view) and refresh it if needed
+     * @param refresh_list Refresh items list or not
+     */
     setListViewMode(refresh_list: Boolean): void {
         this.mode = MainView.List;
         if (refresh_list) {

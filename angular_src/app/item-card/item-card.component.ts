@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, EventEmitter,  Output } from '@angular/core';
-import { AucItem, Bid, ServerResponse, ItemCardEvent, UserItem } from '../item';
+import { AucItem, Bid, ServerResponse, ItemCardEvent, ServerMsg } from '../item';
 import { AlertDialogState } from '../alert-dialog/alert-dialog.component';
 import { RpcService } from '../rpc/rpc.service';
 import { HelpersService } from '../helpers/helpers.service';
@@ -37,6 +37,7 @@ export class ItemCardComponent implements OnInit {
     // Field for submit new bid
     bid_price: number;
 
+    // Field for autobid option
     auto_bid: boolean;
 
     // Item close datetime
@@ -112,13 +113,17 @@ export class ItemCardComponent implements OnInit {
             ])],
         });
 
+        // Subscribe to websocket messages
         this.communicationService.serverMsgAnnounced$.subscribe(
             msg => this.messageHandler(msg)
         );
     }
 
-    messageHandler(msg) {
-        // this.alertDialog.open(msg.item_id.toString())
+    /**
+     * Handler for websocket messages
+     * @param  {} msg Websocket message
+     */
+    messageHandler(msg: ServerMsg) {
         if (msg.event == 'new_bid' && msg.item_id == this.item_id) {
             this.updateCard();
             return
@@ -162,15 +167,6 @@ export class ItemCardComponent implements OnInit {
         }
 
         this.item = item;
-
-        //this.bid_price = null;
-        // this.formBid.reset();
-        // Object.keys(this.formBid.controls).forEach(key => {
-        //     this.formBid.controls[key].reset();
-        //     this.formBid.controls[key].setErrors(null);
-        // });
-        // this.markAllAsUntouched(this.formBid);
-
 
         this.close_dt = this.helpersService.getDateFromEpoch(item.close_dt);
         let epoch = this.helpersService.getCurrentEpoch();
@@ -228,15 +224,6 @@ export class ItemCardComponent implements OnInit {
                 control.markAsTouched({ onlySelf: true });
             } else if (control instanceof FormGroup) {
                 this.validateAllFormFields(control);
-            }
-        });
-    }
-
-    markAllAsUntouched(formGroup: FormGroup) {
-        Object.keys(formGroup.controls).forEach(field => {
-            const control = formGroup.get(field);
-            if (control instanceof FormControl) {
-                control.markAsUntouched({ onlySelf: true });
             }
         });
     }

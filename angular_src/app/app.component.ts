@@ -17,8 +17,10 @@ export class AppComponent implements OnInit {
     // Is current user admin
     is_admin: boolean = false;
 
-    chatSocket: WebSocket;
+    // Websocket
+    webSocketChannel: WebSocket;
 
+    // Initial Sign In form for user
     viewName = 'sign-in'
 
     // Alert dialog state
@@ -33,22 +35,29 @@ export class AppComponent implements OnInit {
     ngOnInit() {
         this.is_admin = this.helpersService.isAdmin();
 
+        // Connect and subscribe to websocket
         let ws_url = 'ws://' + window.location.host + '/ws/channel/';
-        const chatSocket = new WebSocket(ws_url);
-
-        chatSocket.onmessage = (e => this.onWebSocketMsg(e));
+        this.webSocketChannel = new WebSocket(ws_url);
+        this.webSocketChannel.onmessage = (e => this.onWebSocketMsg(e));
 
         this.communicationService.serverMsgAnnounced$.subscribe(
             msg => this.messageHandler(msg)
         );
-
     }
 
+    /**
+     * Broadcast message from websocket through communicationService
+     * @param  {} e Websocket message
+     */
     onWebSocketMsg(e) {
         let data = JSON.parse(e.data);
         this.communicationService.announceServerMsg(data.message);
     }
 
+    /**
+     *Handler for websocket messages
+     * @param  {ServerMsg} msg Websocket message
+     */
     messageHandler(msg: ServerMsg) {
         let user_id = this.helpersService.getUserId();
 
@@ -100,11 +109,17 @@ export class AppComponent implements OnInit {
         }
     }
 
+    /**
+     * Switch to User Page
+     */
     onUserProfile() {
         this.viewName = 'user-page';
         this.communicationService.announceRootMsg('close_card');
     }
 
+    /**
+     * Switch to Admin Panel
+     */
     onAdminPanel() {
         if (this.is_admin) {
             this.viewName = 'items-list';
@@ -114,6 +129,9 @@ export class AppComponent implements OnInit {
         }
     }
 
+    /**
+     * Switch to Gallery page
+     */
     onGallery() {
         this.viewName = 'gallery';
         this.communicationService.announceRootMsg('close_card');

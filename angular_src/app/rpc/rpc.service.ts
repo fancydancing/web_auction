@@ -46,6 +46,10 @@ export class RpcService {
             );
     }
 
+    /**
+     * Get user bids from backend
+     * @param  {} params Set of filters
+     */
     getUserItems(params): Observable<AucUserItem[]> {
         let user_name = this.cookieService.get('auction_user_name');
 
@@ -91,6 +95,10 @@ export class RpcService {
             );
     }
 
+    /**
+     * Read user info
+     * @param  {Number} user_id User ID
+     */
     getUser(user_id: Number): Observable<UserInfo> {
         const url = `api/users/${user_id}`;
         return this.http.get<UserInfo>(url)
@@ -99,6 +107,11 @@ export class RpcService {
             );
     }
 
+    /**
+     * Get infor about user bids on an item
+     * @param  {Number} user_id User ID
+     * @param  {Number} item_id Item ID
+     */
     getUserItemInfo(user_id: Number, item_id: Number): Observable<UserItem> {
         const url = `api/users/${user_id}/item/${item_id}`;
         return this.http.get<UserItem>(url)
@@ -134,6 +147,12 @@ export class RpcService {
             );
     }
 
+    /**
+     * Enable or disable autobid option
+     * @param  {number} item_id Item ID
+     * @param  {number} user_id User ID
+     * @param  {boolean} auto_bid Enable/disable autobid
+     */
     autoBid(item_id: number, user_id: number, auto_bid: boolean): Observable<ServerResponse> {
         const url = `api/items/${item_id}/auto_bid`;
         return this.http.post<ServerResponse>(url, {auto_bid: auto_bid, user_id: user_id})
@@ -154,6 +173,10 @@ export class RpcService {
             );
     }
 
+    /**
+     * Update user settings
+     * @param  {UserInfo} userInfo User settings
+     */
     updateUserInfo(userInfo: UserInfo): Observable<{}> {
         const url = 'api/users/' + userInfo.id.toString(10);
         return this.http.put(url, userInfo, this.httpOptions)
