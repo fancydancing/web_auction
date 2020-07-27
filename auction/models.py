@@ -35,7 +35,7 @@ class Item(models.Model):
     expired = models.BooleanField(null=False, default=False)
     awarded_user = models.TextField(null=True, default='', verbose_name='User awarded')
     awarded_user_id = models.ForeignKey(
-        AuctionUser, models.CASCADE, null=False, verbose_name='User'
+        AuctionUser, models.CASCADE, null=True, verbose_name='User'
     )
 
 

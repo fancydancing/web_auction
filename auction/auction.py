@@ -157,6 +157,7 @@ class AuctionItem():
                 notify_previous = True
 
         data['item_id'] = self.item
+        data['user'] = user
         new_bid = Bid.objects.create(**data)
 
         if not auto:
@@ -334,11 +335,22 @@ class AuctionUserInfo():
             autobid_total_sum: int - new autobid_total_sum
             autobid_alert_perc: int - new autobid_alert_perc
         """
+        current_autobid_sum = self.user.autobid_total_sum
+        new_autobid_sum = int(data.get('autobid_total_sum', current_autobid_sum))
+
+        current_autobid_alert_perc = self.user.autobid_alert_perc
+        new_autobid_alert_perc = max(100, int(data.get('autobid_alert_perc', self.user.autobid_alert_perc)))
 
         self.user.email = data.get('email', self.user.email)
-        self.user.autobid_total_sum = int(data.get('autobid_total_sum', self.user.autobid_total_sum))
-        self.user.autobid_alert_perc = max(100, int(data.get('autobid_alert_perc', self.user.autobid_alert_perc)))
+        self.user.autobid_total_sum = new_autobid_sum
+        self.user.autobid_alert_perc = new_autobid_alert_perc
         self.user.save()
+
+        if new_autobid_sum > current_autobid_sum:
+            check_autobidding()
+
+        # if new_autobid_alert_perc < current_autobid_alert_perc:
+        #     check_alert_perc()
 
         return True
 
@@ -377,21 +389,29 @@ class AuctionAutoBid():
         return autobid_items
 
     def get_users_list(self, item_id: int):
+        # All users who have set autobid ON for this item
         autobid_users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
         user_ids = autobid_users.values_list('user__id', flat=True)
         users = AuctionUser.objects.filter(id__in=user_ids)
         item = get_object_or_404(Item, id=item_id)
+
+        bids_qs = Bid.objects.filter(item_id=item).order_by('-bid_dt')
+        if len(bids_qs) > 0:
+            highest_bid = bids_qs[0]
+            current_winner = highest_bid.user
+        else:
+            current_winner = None
         result = []
         for user in users:
-            # Do not include user whose bid is highest for now?
-            # if user.id == user_id:
-            free_autobid_sum = user.autobid_total_sum - AuctionUserInfo(user.id).get_spent_autobid_sum()
-            # Include only users who can make a higher bid
-            if free_autobid_sum > item.price:
-                result.append({'user_id': user.id,
-                            'user_name': user.name,
-                            'free_autobid_sum': free_autobid_sum
-                            })
+            # Don't count user whose bid is highest for now
+            if user != current_winner:
+                free_autobid_sum = user.autobid_total_sum - AuctionUserInfo(user.id).get_spent_autobid_sum()
+                # Include only users who can make a higher bid
+                if free_autobid_sum > item.price:
+                    result.append({'user_id': user.id,
+                                'user_name': user.name,
+                                'free_autobid_sum': free_autobid_sum
+                                })
         return sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
 
     def delete(self, data: dict):
@@ -474,18 +494,18 @@ def check_autobidding():
 
     result = False
     for item in items:
-        print('Start checking for item ' + item)
+        print('Start checking for item ' + item.title)
         item_result = check_autobidding_for_item(item.id, item.price)
         result = result or item_result
-        print('item result = ' + item_result)
-        print('result = ' + result)
+        print('item result = ' + str(item_result))
+        print('result = ' + str(result))
 
-    return True
+    # return True
 
-    # if result:
-    #     check_autobidding()
-    # else:
-    #     return True
+    if result:
+        check_autobidding()
+    else:
+        return True
 
 def check_autobidding_for_item(item_id: int, price: int) -> bool:
     """
