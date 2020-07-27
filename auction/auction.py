@@ -82,12 +82,6 @@ class AuctionItem():
 
     def read(self, data=None) -> dict:
         """Read an item."""
-        if data is not None:
-            user_id = data.get('user_id')
-            autobid_on = len(AutoBid.objects.filter(item=self.item, user__id=user_id)) > 0
-        else:
-            autobid_on = False
-
         return {
             'id': self.item.id,
             'title': self.item.title,
@@ -96,8 +90,7 @@ class AuctionItem():
             'close_dt': utils.to_epoch(self.item.close_dt),
             'price': self.item.price,
             'expired': self.item.expired,
-            'awarded_user': self.item.awarded_user,
-            'autobid': autobid_on
+            'awarded_user': self.item.awarded_user
         }
 
     def get_bids(self) -> list:
@@ -229,6 +222,7 @@ class AuctionList():
             items_qs = items_qs.filter(close_dt__gt=timezone.now())
 
         if self.sort is not None:
+            # if sort ==
             sorting_column = ('' if self.order == 'asc' else '-') + self.sort
             items_qs = items_qs.order_by(sorting_column)
 
@@ -335,8 +329,8 @@ class AuctionUserInfo():
         """
 
         self.user.email = data.get('email', self.user.email)
-        self.user.autobid_total_sum = data.get('autobid_total_sum', self.user.autobid_total_sum)
-        self.user.autobid_alert_perc = data.get('autobid_alert_perc', self.user.autobid_alert_perc)
+        self.user.autobid_total_sum = int(data.get('autobid_total_sum', self.user.autobid_total_sum))
+        self.user.autobid_alert_perc = max(100, int(data.get('autobid_alert_perc', self.user.autobid_alert_perc)))
         self.user.save()
 
         return True
