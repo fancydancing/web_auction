@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.db.models.signals import post_save
 from django.shortcuts import get_object_or_404
+from .utils import celery_send_email_task
 
 class AuctionUser(models.Model):
     """User model"""
@@ -10,6 +11,7 @@ class AuctionUser(models.Model):
     role = models.TextField(null=False, default='user')
     email = models.TextField(null=False)
     autobid_total_sum = models.IntegerField(null=True)
+    autobid_sum_left = models.IntegerField(null=True)
     autobid_alert_perc = models.IntegerField(null=True)
 
 
@@ -63,13 +65,18 @@ def post_save_update_item_price(sender, instance, *args, **kwargs):
         item.save()
 
 def post_save_update_autobid_sum(sender, instance, *args, **kwargs):
-    """Updating autobid total sum for user after new autobid."""
-    # if instance.auto and instance.user_name is not None:
+    """Update autobid sum left for user after new autobid."""
     if instance.auto and instance.user is not None:
-        # user = get_object_or_404(AuctionUser, name=instance.user_name)
         user = instance.user
-        user.autobid_total_sum = user.autobid_total_sum - instance.price
+        sum_left = user.autobid_total_sum - AuctionUseinfo(user).get_spent_autobid_sum()
+        user.autobid_sum_left = sum_left
         user.save()
+
+        if sum_left == 0:
+            email_subject = 'Webauction alert: you are run out of autobid sum'
+            email_content = 'Your total autobid amount is 0. The last item to bid was ' + instance.item_id.title + ' with a price of ' + str(instance.price) + '. Come to webauction.herokuapp.com for more opportunities!'
+            email_recipients = [user.email]
+            celery_send_email_task(email_subject, email_content, email_recipients)
 
 post_save.connect(post_save_update_item_price, sender=Bid)
 post_save.connect(post_save_update_autobid_sum, sender=Bid)
