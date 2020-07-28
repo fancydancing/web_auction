@@ -103,6 +103,8 @@ DATABASES = {
     }
 }
 
+local_db = 'postgres://django_user:django_password@localhost/web_auction'
+DATABASES['default'] = dj_database_url.config(default=local_db)
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
