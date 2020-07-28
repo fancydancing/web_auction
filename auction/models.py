@@ -12,7 +12,7 @@ class AuctionUser(models.Model):
     email = models.TextField(null=False)
     autobid_total_sum = models.IntegerField(null=True)
     autobid_sum_left = models.IntegerField(null=True)
-    autobid_alert_perc = models.IntegerField(null=True)
+    autobid_alert_perc = models.IntegerField(null=True, default=95)
 
 
 class Item(models.Model):
@@ -56,6 +56,16 @@ class Bid(models.Model):
         default=0, verbose_name='Bid value'
     )
 
+def get_spent_autobid_sum(user_id: int):
+        bids_qs = Bid.objects.filter(user__id=user_id, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
+        autobid_spent = 0
+
+        for bid in bids_qs:
+            # Count only winning bids
+            if bid.price == bid.item_id.price and bid.auto:
+                autobid_spent += bid.price
+
+        return autobid_spent
 
 def post_save_update_item_price(sender, instance, *args, **kwargs):
     """Updating item price after new bid."""
@@ -68,7 +78,7 @@ def post_save_update_autobid_sum(sender, instance, *args, **kwargs):
     """Update autobid sum left for user after new autobid."""
     if instance.auto and instance.user is not None:
         user = instance.user
-        sum_left = user.autobid_total_sum - AuctionUseinfo(user).get_spent_autobid_sum()
+        sum_left = user.autobid_total_sum - get_spent_autobid_sum(user.id)
         user.autobid_sum_left = sum_left
         user.save()
 

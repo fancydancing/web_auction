@@ -18,5 +18,5 @@ def from_epoch(value: int) -> datetime.datetime:
 def celery_send_ws_task(p):
     current_app.send_task('auction.tasks.celery_ws_send', args=[p])
 
-def celery_send_email_task(subject, content, recipients):
+def celery_send_email_task(subject: str, content: str, recipients: [str]):
     current_app.send_task('auction.tasks.task_send_email', args=[subject, content, recipients])

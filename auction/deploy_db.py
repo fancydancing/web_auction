@@ -23,9 +23,9 @@ def deploy_data():
         return
 
     sql_str = """
-INSERT INTO auction_auctionuser (id, name, password, role, email, autobid_total_sum, autobid_alert_perc) VALUES (1, 'admin', 'admin', 'admin', 'webauctiontesting+admin@gmail.com', null, null);
-INSERT INTO auction_auctionuser (id, name, password, role, email, autobid_total_sum, autobid_alert_perc) VALUES (2, 'user', 'user', 'user', 'webauctiontesting+user@gmail.com', null, null);
-INSERT INTO auction_auctionuser (id, name, password, role, email, autobid_total_sum, autobid_alert_perc) VALUES (3, 'user2', 'user2', 'user', 'webauctiontesting+user2@gmail.com', null, null);
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid_total_sum, autobid_alert_perc) VALUES (1, 'admin', 'admin', 'admin', 'webauctiontesting+admin@gmail.com', null, 95);
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid_total_sum, autobid_alert_perc) VALUES (2, 'user', 'user', 'user', 'webauctiontesting+user@gmail.com', null, 95);
+INSERT INTO auction_auctionuser (id, name, password, role, email, autobid_total_sum, autobid_alert_perc) VALUES (3, 'user2', 'user2', 'user', 'webauctiontesting+user2@gmail.com', null, 95);
 
 SELECT pg_catalog.setval('auction_auctionuser_id_seq', 3, true);
 
