@@ -267,13 +267,21 @@ class AuctionUserInfo():
     def check_alert_perc(self):
         sum_total = self.user.autobid_total_sum
         sum_left = self.user.autobid_sum_left
-        perc_used = sum_left * 100 / sum_total
+        sum_spent = (sum_total - sum_left)
+        perc_used = sum_spent * 100 / sum_total
 
         if perc_used <= self.user.autobid_alert_perc:
             email_subject = 'Webauction autobid alert'
-            email_content = 'You have already spent '+ str(self.user.autobid_alert_perc) + '% of your total autobid sum ($' + str(sum_total - sum_left) + ') of $' + str(sum_total) + '). Come to webauction.herokuapp.com for more opportunities!'
+            email_content = 'You have already spent '+ str(self.user.autobid_alert_perc) + '% of your total autobid sum ($' + str(sum_spent) + ' of $' + str(sum_total) + '). Come to webauction.herokuapp.com for more opportunities!'
             email_recipients = [self.user.email]
             utils.celery_send_email_task(email_subject, email_content, email_recipients)
+            utils.celery_send_ws_task({
+                'event': 'autobid_exceeding',
+                'user_id': self.user.id,
+                'autobid_total_sum': sum_total,
+                'autobid_spent': sum_spent
+            })
+
 
 
     def get_bids_list(self, data) -> list:
@@ -426,8 +434,7 @@ class AuctionAutoBid():
                     email_subject = 'Webauction alert: cannot make an autobid'
                     email_content = 'You have set AUTOBID option on for an item "'+ item.title + '" but there was not enough sum for the next bid. Your current balance is $' + str(free_autobid_sum) + ' and item''s price is $' + str(item.price) + '. Come to webauction.herokuapp.com for more opportunities!'
                     email_recipients = [user.email]
-                    # utils.celery_send_email_task(email_subject, email_content, email_recipients)
-                    print(email_content, email_recipients)
+                    utils.celery_send_email_task(email_subject, email_content, email_recipients)
 
         return sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
 
