@@ -259,7 +259,7 @@ def item_info_for_user(request, pk_user: int, pk_item: int) -> dict:
 def index_view(request) -> HttpResponse:
     """Show start page with items list."""
     # check_autobidding(2, 215)
-    losers_qs = Bid.objects.all().values_list('user', flat=True).distinct()
-    print(losers_qs)
+    # losers_qs = Bid.objects.all().values_list('user', flat=True).distinct()
+    # print(losers_qs)
     deploy_data()
     return render(request, 'items.html')
