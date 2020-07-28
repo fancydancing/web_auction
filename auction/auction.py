@@ -270,7 +270,7 @@ class AuctionUserInfo():
         sum_spent = (sum_total - sum_left)
         perc_used = sum_spent * 100 / sum_total
 
-        if perc_used <= self.user.autobid_alert_perc:
+        if perc_used >= self.user.autobid_alert_perc:
             email_subject = 'Webauction autobid alert'
             email_content = 'You have already spent '+ str(self.user.autobid_alert_perc) + '% of your total autobid sum ($' + str(sum_spent) + ' of $' + str(sum_total) + '). Come to webauction.herokuapp.com for more opportunities!'
             email_recipients = [self.user.email]
