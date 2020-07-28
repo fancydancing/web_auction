@@ -146,5 +146,5 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_URL = '/angular_dist/'
 STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['..','angular_dist']))
 STATICFILES_DIRS = [
-    os.path.join(PROJECT_ROOT, "..","angular_dist"),
+    # os.path.join(PROJECT_ROOT, "..","angular_dist"),
 ]
