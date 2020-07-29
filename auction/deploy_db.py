@@ -4,20 +4,6 @@ import random
 
 
 def deploy_data():
-#     sql_str = """
-#     UPDATE auction_bid SET user = 1 WHERE user_name = 'admin'
-#     UPDATE auction_bid SET user = 2 WHERE user_name = 'user'
-#     UPDATE auction_bid SET user = 3 WHERE user_name = 'user2'
-
-#     UPDATE auction_item SET awarded_user_id = 1 WHERE awarded_user = 'admin'
-#     UPDATE auction_item SET awarded_user_id = 2 WHERE awarded_user = 'user'
-#     UPDATE auction_item SET awarded_user_id = 3 WHERE awarded_user = 'user2'
-
-# """
-
-#     with connection.cursor() as cursor:
-#         cursor.execute(sql_str)
-
     deploy_qs = DeployInfo.objects.filter(deploy_name='initial')
     if len(deploy_qs) > 0:
         return
@@ -40,11 +26,12 @@ INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id
 INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (10, 3, 'user2', '2020-07-03 09:38:43.374303+00', false, 1150, 15);
 INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (11, 1, 'admin', '2020-07-03 18:33:03.673124+00', false, 2200, 26);
 INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (12, 1, 'admin', '2020-07-04 09:19:44.914815+00', false, 2050, 27);
+INSERT INTO auction_bid (id, user_id, user_name, bid_dt, auto, price, item_id_id) VALUES (13, 2, 'user', '2020-07-04 19:19:44.914815+00', false, 2300, 26);
 
-SELECT pg_catalog.setval('auction_bid_id_seq', 12, true);
+SELECT pg_catalog.setval('auction_bid_id_seq', 13, true);
 
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (1, 'John Lennon''s broken glasses', '2020-07-01 06:31:21.074002+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2100, 'Broken glasses from the Beatles frontman', false, '', null);
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (2, 'Vintage Louis Vuitton Makeup Case', '2020-07-01 06:32:13.680189+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 215, 'Hard case cosmetic suitcase with Monogram Canvas coating, brass fittings, leather interior, 5 leather loops for bottles. Key attached. Very nice receipt, slight traces of age. 35,5x21,5x26cm.', false, '', null);
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (1, 'John Lennon''s broken glasses', '2020-07-01 06:31:21.074002+00', '2020-07-22 16:32:13.680189+00', 2100, 'Broken glasses from the Beatles frontman', false, '', null);
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (2, 'Vintage Louis Vuitton Makeup Case', '2020-07-01 06:32:13.680189+00', '2020-07-21 06:32:13.680189+00', 215, 'Hard case cosmetic suitcase with Monogram Canvas coating, brass fittings, leather interior, 5 leather loops for bottles. Key attached. Very nice receipt, slight traces of age. 35,5x21,5x26cm.', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (11, 'Link bracelet with rubies, rose cut diamonds and enamel', '2020-07-02 07:55:14.019906+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 200, 'India, Rajasthan, 1850 yellow gold 22 ct., tested. Translucent enamel in blue, red, green, and white hues. 48 tiny rose cut diamonds, together CA. 0,30 ct. 12 rubies, round cabochon cut, together approx 0,45 ct. L. approx. 19 cm, width approx 1.5 cm. About 54,6 g.', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (12, 'Pierced bowl made of silver with a dragon decor', '2020-07-02 08:24:29.491926+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 1300, 'Crafted shell made of silver, pierced with dragon decoration and Voalkartuschen. CHINA, u. a. hallmarked WH (Wang Hing) 90, late Qing dynasty. B. 25.1 cm/734 g', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (13, 'Set for spices "Atkin Brothers". England, crystal, silver, handmade, 1853-1925 years.', '2020-07-02 08:24:49.198837+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 120, 'Serving set for spices of the Victorian era. Containers for spices is made of crystal glass with low lead content and faceted by hand. Base, spoon and lid Nickel alloy plated with 925 silver.', false, '', null);
@@ -59,7 +46,7 @@ INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, ex
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (15, 'Antique carafe, decanter, bottle, England, Glass, first half 20th century, handmade', '2020-07-02 08:25:48.059775+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 1150, 'Decanter for liqueurs and bitters. The vessel is decorated with patterns applied by engraving. Completely handmade.', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (24, 'Decorative vase, rare technique of stained glass enamels', '2020-07-03 18:02:24.937743+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 277, 'Vase, made in a rare technique of stained enamel and Plique-à-jour (FR. "let in daylight"). It is a technique of enameling in which enamel is put in the cells, similar to cloisonne, the only difference is that uses a temporary basis, which after firing is dissolved by acid.', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (25, 'Saucer for jewelry Wedgwood "Orchids". Neo-classicism, England, biscuit porcelain. 1974 - 1990', '2020-07-03 18:10:18.868625+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 49, 'Saucer for decorations of porcelain Jasper from the iconic British company Wedgwood in rare colors. All items are carved from porcelain by hand', false, '', null);
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (26, 'Desktop device of "Horse"', '2020-07-03 18:12:40.586611+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2200, 'Desktop device of "Horse". Includes pencil holders, a box. there is a plaque with the inscription in Georgian, dated 1935.', false, '', null);
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (26, 'Desktop device of "Horse"', '2020-07-03 18:12:40.586611+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2300, 'Desktop device of "Horse". Includes pencil holders, a box. there is a plaque with the inscription in Georgian, dated 1935.', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (27, 'Fireplace set in the art Nouveau style', '2020-07-04 09:04:43.528714+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2050, 'Fireplace set, consisting of a clock and pair of vases. Items decorated with images of cyclamen and floral ornament in art Nouveau style.', false, '', null);
 
 SELECT pg_catalog.setval('auction_item_id_seq', 27, true);
