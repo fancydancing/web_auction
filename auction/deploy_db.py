@@ -4,20 +4,6 @@ import random
 
 
 def deploy_data():
-#     sql_str = """
-#     UPDATE auction_bid SET user = 1 WHERE user_name = 'admin'
-#     UPDATE auction_bid SET user = 2 WHERE user_name = 'user'
-#     UPDATE auction_bid SET user = 3 WHERE user_name = 'user2'
-
-#     UPDATE auction_item SET awarded_user_id = 1 WHERE awarded_user = 'admin'
-#     UPDATE auction_item SET awarded_user_id = 2 WHERE awarded_user = 'user'
-#     UPDATE auction_item SET awarded_user_id = 3 WHERE awarded_user = 'user2'
-
-# """
-
-#     with connection.cursor() as cursor:
-#         cursor.execute(sql_str)
-
     deploy_qs = DeployInfo.objects.filter(deploy_name='initial')
     if len(deploy_qs) > 0:
         return
@@ -60,7 +46,7 @@ INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, ex
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (15, 'Antique carafe, decanter, bottle, England, Glass, first half 20th century, handmade', '2020-07-02 08:25:48.059775+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 1150, 'Decanter for liqueurs and bitters. The vessel is decorated with patterns applied by engraving. Completely handmade.', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (24, 'Decorative vase, rare technique of stained glass enamels', '2020-07-03 18:02:24.937743+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 277, 'Vase, made in a rare technique of stained enamel and Plique-à-jour (FR. "let in daylight"). It is a technique of enameling in which enamel is put in the cells, similar to cloisonne, the only difference is that uses a temporary basis, which after firing is dissolved by acid.', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (25, 'Saucer for jewelry Wedgwood "Orchids". Neo-classicism, England, biscuit porcelain. 1974 - 1990', '2020-07-03 18:10:18.868625+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 49, 'Saucer for decorations of porcelain Jasper from the iconic British company Wedgwood in rare colors. All items are carved from porcelain by hand', false, '', null);
-INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (26, 'Desktop device of "Horse"', '2020-07-03 18:12:40.586611+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2200, 'Desktop device of "Horse". Includes pencil holders, a box. there is a plaque with the inscription in Georgian, dated 1935.', false, '', null);
+INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (26, 'Desktop device of "Horse"', '2020-07-03 18:12:40.586611+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2300, 'Desktop device of "Horse". Includes pencil holders, a box. there is a plaque with the inscription in Georgian, dated 1935.', false, '', null);
 INSERT INTO auction_item (id, title, create_dt, close_dt, price, description, expired, awarded_user, awarded_user_id_id) VALUES (27, 'Fireplace set in the art Nouveau style', '2020-07-04 09:04:43.528714+00', now() + interval '""" + str(random.randint(1, 120)) + """ hour', 2050, 'Fireplace set, consisting of a clock and pair of vases. Items decorated with images of cyclamen and floral ornament in art Nouveau style.', false, '', null);
 
 SELECT pg_catalog.setval('auction_item_id_seq', 27, true);

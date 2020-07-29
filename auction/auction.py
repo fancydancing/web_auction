@@ -297,7 +297,7 @@ class AuctionUserInfo():
         bids_ids = bids_qs.values_list('id', flat=True)
 
         if sort == 'close_dt':
-            bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('item_id__close_dt')
+            bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('-item_id__close_dt')
         elif sort == 'bid_dt':
             bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('-bid_dt')
 
