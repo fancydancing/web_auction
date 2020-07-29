@@ -6,7 +6,7 @@ http://webauction.herokuapp.com/
    `user/user` - Regular user
    `user2/user2` - Regular user
 
-   [API documentation]https://app.swaggerhub.com/apis/fancydancing/WebAuction/1.0.0
+   [API documentation](https://app.swaggerhub.com/apis/fancydancing/WebAuction/1.0.0)
 
 # Project structure
 
