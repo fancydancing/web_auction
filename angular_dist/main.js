@@ -244,7 +244,7 @@ class AppComponent {
     ngOnInit() {
         this.is_admin = this.helpersService.isAdmin();
         // Connect and subscribe to websocket
-        let ws_url = 'ws://' + window.location.host + '/ws/channel/';
+        let ws_url = 'wss://' + window.location.host + '/ws/channel/';
         this.webSocketChannel = new WebSocket(ws_url);
         this.webSocketChannel.onmessage = (e => this.onWebSocketMsg(e));
         this.communicationService.serverMsgAnnounced$.subscribe(msg => this.messageHandler(msg));
