@@ -1,8 +1,8 @@
 # Credentials
 
-   <p>`admin/admin` - Administrator<br>
-   `user/user` - Regular user<br>
-   `user2/user2` - Regular user</p>
+   `admin/admin` - Administrator  
+   `user/user` - Regular user  
+   `user2/user2` - Regular user  
 
 # API
 
@@ -11,18 +11,18 @@
 # Project structure
 
 ### Frontend sources (Angular)
-   <p>`angular_src` - sources for frontend<br>
-   `angular_dist` - compiled and webpacked frontend files</p>
+   `angular_src` - sources for frontend  
+   `angular_dist` - compiled and webpacked frontend files  
 
 ### Backend sources (Django)
-   <p>`web_auction` - Django project settings<br>
-   `auction` - Django application</p>
+   `web_auction` - Django project settings  
+   `auction` - Django application     
 
 ### Docker files
-   <p>`Dockerfile` - setups Django service<br>
-   `docker-compose.yml` - runs Django and PostgreSQL<br>
-   `entrypoint.sh` - runs Django migrations before Django starts</p>
-
+   `Dockerfile` - setups Django service  
+   `docker-compose.yml` - runs Django and PostgreSQL  
+   `entrypoint.sh` - runs Django migrations before Django starts  
+   
 
 # Local machine deployment
 1. Install [Docker](www.docker.com).
