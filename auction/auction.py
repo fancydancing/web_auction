@@ -6,28 +6,12 @@ from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
-
-from .models import Item, Bid, AuctionUser, AutoBid
+from .models import Item, Bid, AuctionUser, AutoBid, get_spent_autobid_sum
 from . import utils
-from .consumers import ws_send
-
-from celery import current_app
 
 
 # Used to show all items without pagination
 ALL_ITEMS = -1
-
-# Users allowed to login
-# LOGIN_PASS = {
-#     'admin': {'password': 'admin', 'role': 'admin', 'email': 'webauctiontesting+admin@gmail.com'},
-#     'user': {'password': 'user', 'role': 'user', 'email': 'webauctiontesting+user@gmail.com'},
-#     'user2': {'password': 'user2', 'role': 'user', 'email': 'webauctiontesting+user2@gmail.com'}
-#     }
-
-
-def celery_send_task(p):
-    current_app.send_task('auction.tasks.celery_ws_send', args=[p])
-
 
 class AuctionItem():
     def __init__(self, item_id=None):
@@ -67,7 +51,7 @@ class AuctionItem():
         self.item.close_dt = utils.from_epoch(data.get('close_dt')) or self.item.close_dt
         self.item.save()
 
-        celery_send_task({
+        utils.celery_send_ws_task({
             'event': 'item_changed',
             'item_id': self.item.id
         })
@@ -91,7 +75,7 @@ class AuctionItem():
             'price': self.item.price,
             'expired': self.item.expired,
             'awarded_user': self.item.awarded_user,
-            'awarded_user_id': self.item.awarded_user_id
+            'awarded_user_id': self.item.awarded_user_id.id if self.item.awarded_user_id else None
         }
 
     def get_bids(self) -> list:
@@ -150,27 +134,33 @@ class AuctionItem():
                 # prev_winner = get_object_or_404(AuctionUser, name=highest_bid.user_name)
                 prev_winner = highest_bid.user
                 previous_price = self.item.price
-                # Return previous bid sum to user's autobid total amount if it was made by autobid
+                # Return previous bid sum to user's autobid left amount if it was made by autobid
                 if highest_bid.auto:
                     AuctionUserInfo(prev_winner.id).update_auto_bid(previous_price)
                 # Notify previous winner
                 notify_previous = True
 
         data['item_id'] = self.item
+        data['user'] = user
         new_bid = Bid.objects.create(**data)
 
         if not auto:
+            # For manual bid - start checking for possible autobids
             check_autobidding()
+        else:
+            # For autobid - check if spent sum exceeds alert percentage
+            AuctionUserInfo(user.id).check_alert_perc()
 
         # Send notification for list refresh
-        celery_send_task({
+        utils.celery_send_ws_task({
             'item_id': self.item.id,
             'event': 'new_bid'
         })
 
         # Send notification for previous winner
         if notify_previous:
-            celery_send_task({
+            # Notify via websocket
+            utils.celery_send_ws_task({
                 'event': 'item_losing',
                 'user_id': prev_winner.id,
                 'winner_name': user_name,
@@ -179,15 +169,30 @@ class AuctionItem():
                 'user_bid_price': previous_price
                 })
 
+            # Notify via email
+            email_subject = 'Webauction alert: item outbid'
+            email_content = 'There''s a higher bid on item "' + self.item.title + '": $' + str(price) + '. You current bid is $' + str(previous_price) + '. Come to webauction.herokuapp.com for more opportunities!'
+            email_recipients = [prev_winner.email]
+            utils.celery_send_email_task(email_subject, email_content, email_recipients)
+
         return {'result': True, 'id': new_bid.id}
 
     def notify_winner(self, user_id):
-        celery_send_task({
+        utils.celery_send_ws_task({
             'event': 'item_won',
             'item_title': self.item.title,
             'user_id': user_id,
             'price': self.item.price
         })
+
+    def notify_loser(self, user_id):
+        utils.celery_send_ws_task({
+            'event': 'item_lost',
+            'item_title': self.item.title,
+            'user_id': user_id,
+            'price': self.item.price
+        })
+
 
 
 
@@ -259,17 +264,25 @@ class AuctionUserInfo():
         if user_id is not None:
             self.user = get_object_or_404(AuctionUser, pk=user_id)
 
-    def get_spent_autobid_sum(self) -> int:
-        # bids_qs = Bid.objects.filter(user_name=self.user.name, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
-        bids_qs = Bid.objects.filter(user=self.user, item_id__expired=False).order_by('item_id', '-bid_dt').distinct('item_id')
-        autobid_spent = 0
+    def check_alert_perc(self):
+        sum_total = self.user.autobid_total_sum
+        sum_left = self.user.autobid_sum_left
+        sum_spent = (sum_total - sum_left)
+        perc_used = sum_spent * 100 / sum_total
 
-        for bid in bids_qs:
-            # Count only winning bids
-            if bid.price == bid.item_id.price and bid.auto:
-                autobid_spent += bid.price
+        if perc_used >= self.user.autobid_alert_perc:
+            email_subject = 'Webauction autobid alert'
+            email_content = 'You have already spent '+ str(self.user.autobid_alert_perc) + '% of your total autobid sum ($' + str(sum_spent) + ' of $' + str(sum_total) + '). Come to webauction.herokuapp.com for more opportunities!'
+            email_recipients = [self.user.email]
+            utils.celery_send_email_task(email_subject, email_content, email_recipients)
+            utils.celery_send_ws_task({
+                'event': 'autobid_exceeding',
+                'user_id': self.user.id,
+                'autobid_total_sum': sum_total,
+                'autobid_spent': sum_spent
+            })
 
-        return autobid_spent
+
 
     def get_bids_list(self, data) -> list:
         """
@@ -284,19 +297,17 @@ class AuctionUserInfo():
         bids_ids = bids_qs.values_list('id', flat=True)
 
         if sort == 'close_dt':
-            bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('item_id__close_dt')
+            bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('-item_id__close_dt')
         elif sort == 'bid_dt':
             bids_qs = Bid.objects.filter(id__in=bids_ids).order_by('-bid_dt')
 
         if status == 'won':
-            # bids_qs = bids_qs.filter(item_id__awarded_user=user_name)
             bids_qs = bids_qs.filter(item_id__awarded_user_id=user)
         result = []
 
         for bid in bids_qs:
             status = ''
 
-            # if bid.item_id.awarded_user == user_name:
             if bid.item_id.expired:
                 status = 'won' if bid.item_id.awarded_user_id == user else 'lost'
             else:
@@ -321,6 +332,7 @@ class AuctionUserInfo():
             'name': self.user.name,
             'email': self.user.email,
             'autobid_total_sum': self.user.autobid_total_sum,
+            'autobid_sum_left': self.user.autobid_sum_left,
             'autobid_alert_perc': self.user.autobid_alert_perc
         }
 
@@ -334,22 +346,34 @@ class AuctionUserInfo():
             autobid_total_sum: int - new autobid_total_sum
             autobid_alert_perc: int - new autobid_alert_perc
         """
+        current_autobid_sum = self.user.autobid_total_sum or 0
+        new_autobid_sum = int(data.get('autobid_total_sum', current_autobid_sum))
+
+        current_autobid_alert_perc = self.user.autobid_alert_perc or 0
+        new_autobid_alert_perc = min(100, int(data.get('autobid_alert_perc', self.user.autobid_alert_perc)))
 
         self.user.email = data.get('email', self.user.email)
-        self.user.autobid_total_sum = int(data.get('autobid_total_sum', self.user.autobid_total_sum))
-        self.user.autobid_alert_perc = max(100, int(data.get('autobid_alert_perc', self.user.autobid_alert_perc)))
+        self.user.autobid_total_sum = new_autobid_sum
+        self.user.autobid_sum_left = new_autobid_sum - get_spent_autobid_sum(self.user.id)
+        self.user.autobid_alert_perc = new_autobid_alert_perc
         self.user.save()
+
+        if new_autobid_sum > current_autobid_sum:
+            check_autobidding()
+
+        if new_autobid_alert_perc < current_autobid_alert_perc:
+            self.check_alert_perc()
 
         return True
 
     def update_auto_bid(self, amount: int) -> int:
         """
-        Update autobid total sum by an amount.
+        Update autobid left sum by an amount.
         """
-        self.user.autobid_total_sum = self.user.autobid_total_sum + amount
+        self.user.autobid_sum_left = (self.user.autobid_sum_left or 0) + amount
         self.user.save()
 
-        return self.user.autobid_total_sum
+        return self.user.autobid_sum_left
 
 
 class AuctionAutoBid():
@@ -366,33 +390,54 @@ class AuctionAutoBid():
 
         data_add = {'user': user, 'item': item}
         new_autobid = AutoBid.objects.create(**data_add)
+        # Start a task for autobidding
+        utils.celery_send_autobid_task()
 
         return {'result': True, 'auto_bid_state': True}
 
     def get_items_list(self):
-        autobid_items_ids = AutoBid.objects.distinct('item').values_list('item', flat=True)
+        autobid_items_ids = AutoBid.objects.filter(item__expired=False).distinct('item').values_list('item', flat=True)
         autobid_items = Item.objects.filter(id__in=autobid_items_ids).order_by('close_dt')
         # autobid_items = AutoBid.objects.distinct('item').values('item')
         print(autobid_items)
         return autobid_items
 
-    def get_users_list(self, item_id: int):
+    def get_autobid_users_list(self, item_id: int):
+        # All users who have set autobid ON for this item
         autobid_users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
+        print('Have autobid on: ', autobid_users)
         user_ids = autobid_users.values_list('user__id', flat=True)
+        print('IDS: ', user_ids)
         users = AuctionUser.objects.filter(id__in=user_ids)
         item = get_object_or_404(Item, id=item_id)
+
+        bids_qs = Bid.objects.filter(item_id=item).order_by('-bid_dt')
+        if len(bids_qs) > 0:
+            highest_bid = bids_qs[0]
+            current_winner = highest_bid.user
+        else:
+            current_winner = None
         result = []
         for user in users:
-            # Do not include user whose bid is highest for now?
-            # if user.id == user_id:
-            free_autobid_sum = user.autobid_total_sum - AuctionUserInfo(user.id).get_spent_autobid_sum()
+            free_autobid_sum = user.autobid_sum_left or 0
+            print(free_autobid_sum)
             # Include only users who can make a higher bid
             if free_autobid_sum > item.price:
                 result.append({'user_id': user.id,
                             'user_name': user.name,
-                            'free_autobid_sum': free_autobid_sum
+                            'free_autobid_sum': free_autobid_sum,
+                            'current_winner': user == current_winner
                             })
-        return sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
+            # Others will get an email alerting about not enough sum
+            else:
+                email_subject = 'Webauction alert: cannot make an autobid'
+                email_content = 'You have set AUTOBID option on for an item "'+ item.title + '" but there was not enough sum for the next bid. Your current balance is $' + str(free_autobid_sum) + ' and item''s price is $' + str(item.price) + '. Come to webauction.herokuapp.com for more opportunities!'
+                email_recipients = [user.email]
+                utils.celery_send_email_task(email_subject, email_content, email_recipients)
+
+        # Users who can make a bid sorted by free autobid sum
+        result = sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
+        return result
 
     def delete(self, data: dict):
         """
@@ -418,6 +463,7 @@ class Authorization():
         # Login/password check
         users = AuctionUser.objects.all()
         allowed_logins = users.values_list('name', flat=True)
+        print(allowed_logins)
         if username not in allowed_logins or password != users.get(name=username).password:
             res = False
             role = None
@@ -437,10 +483,12 @@ def check_deadlines():
 
     awards = []
     losers = []
+    auto = False
     for item in expired_items:
         bids = Bid.objects.filter(item_id=item)
         if len(bids) > 0:
             latest_bid = bids.latest('bid_dt')
+            auto = latest_bid.auto
             winner = latest_bid.user
             winner_name = winner.name
             awards.append({'item': item.title,
@@ -451,18 +499,32 @@ def check_deadlines():
                            'email': winner.email
                            })
 
-            # losers = Bid.objects.filter(item_id=item, ).
-
-            # for loser in bids[1:]:
+            losers_ids = bids.exclude(user__in=[winner]).values_list('user', flat=True).distinct()
+            losers_qs = AuctionUser.objects.filter(id__in=losers_ids)
+            print(losers_qs)
+            for loser in losers_qs:
+                losers.append({'item': item.title,
+                               'item_id': item.id,
+                               'price': latest_bid.price,
+                               'winner_name': winner_name,
+                               'loser_name': loser.name,
+                               'loser_id': loser.id,
+                               'email': loser.email
+                               })
         else:
             winner_name = None
+            winner = None
 
         item.awarded_user = winner_name
         item.awarded_user_id = winner
         item.expired = True
         item.save()
 
-    return awards
+        if winner is not None and auto:
+            winner.autobid_total_sum = winner.autobid_total_sum - item.price
+            winner.save()
+
+    return awards, losers
 
 def check_autobidding():
     """
@@ -474,42 +536,58 @@ def check_autobidding():
 
     result = False
     for item in items:
-        print('Start checking for item ' + item)
+        print('Start checking for item ' + item.title)
         item_result = check_autobidding_for_item(item.id, item.price)
         result = result or item_result
-        print('item result = ' + item_result)
-        print('result = ' + result)
+        print('item result = ' + str(item_result))
+        print('result = ' + str(result))
 
-    return True
-
-    # if result:
-    #     check_autobidding()
-    # else:
-    #     return True
+    if result:
+        check_autobidding()
+    else:
+        return True
 
 def check_autobidding_for_item(item_id: int, price: int) -> bool:
     """
     Automatically set bid on an item for users with autobid set to True.
     Returns True if any bid was set, False otherwise.
     """
-    users_for_bidding = AuctionAutoBid().get_users_list(item_id)
+    users_for_bidding = AuctionAutoBid().get_autobid_users_list(item_id)
 
+    new_price = price + 1
+    set_max_price = False
+    # If there are no possible bidders, quit
     if len(users_for_bidding) == 0:
         print('no users')
         return False
+    elif users_for_bidding[0].get('current_winner'):
+        # If current winner is the only possible bidder, quit
+        if len(users_for_bidding) == 1:
+            print('only winner can bid')
+            return False
+        # If current winner has max free sutobid sum, next bidder must bid maximum possible sum
+        else:
+            set_max_price = True
+            winner = users_for_bidding[1]
+            winner_sum = winner.get('free_autobid_sum')
+    # If someone else has maximum autobid sum, regard him as a next winner
     else:
+        print(users_for_bidding)
         winner = users_for_bidding[0]
         winner_sum = winner.get('free_autobid_sum')
 
-    pre_max_bidder = None
-    new_price = price + 1
-
-    # Calculate new price: overbid the second winner by 1
-    for bid_user in users_for_bidding[1:]:
-        pre_max_sum = bid_user.get('free_autobid_sum')
-        if pre_max_sum < winner_sum:
-            new_price = pre_max_sum + 1
-            break
+    if set_max_price:
+        new_price = winner_sum
+    else:
+        # Calculate new price: overbid the second winner by 1
+        for bid_user in users_for_bidding:
+            print('new price: ')
+            pre_max_sum = bid_user.get('free_autobid_sum')
+            print(pre_max_sum)
+            if pre_max_sum < winner_sum:
+                new_price = pre_max_sum + 1
+                print(new_price)
+                break
 
     item = AuctionItem(item_id)
     data = {'user_name': winner.get('user_name'), 'price': new_price, 'auto': True}
