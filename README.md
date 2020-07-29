@@ -1,8 +1,8 @@
 # Credentials
 
-   `admin/admin` - Administrator
-   `user/user` - Regular user
-   `user2/user2` - Regular user
+   <p>`admin/admin` - Administrator<br>
+   `user/user` - Regular user<br>
+   `user2/user2` - Regular user</p>
 
 # API
 
@@ -11,17 +11,17 @@
 # Project structure
 
 ### Frontend sources (Angular)
-   `angular_src` - sources for frontend
-   `angular_dist` - compiled and webpacked frontend files
+   <p>`angular_src` - sources for frontend<br>
+   `angular_dist` - compiled and webpacked frontend files</p>
 
 ### Backend sources (Django)
-   `web_auction` - Django project settings
-   `auction` - Django application
+   <p>`web_auction` - Django project settings<br>
+   `auction` - Django application</p>
 
 ### Docker files
-   `Dockerfile` - setups Django service
-   `docker-compose.yml` - runs Django and PostgreSQL
-   `entrypoint.sh` - runs Django migrations before Django starts
+   <p>`Dockerfile` - setups Django service<br>
+   `docker-compose.yml` - runs Django and PostgreSQL<br>
+   `entrypoint.sh` - runs Django migrations before Django starts</p>
 
 
 # Local machine deployment
