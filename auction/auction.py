@@ -417,26 +417,25 @@ class AuctionAutoBid():
             current_winner = None
         result = []
         for user in users:
-            print(user.name)
-            # Don't count user whose bid is highest for now
-            if user != current_winner:
-                print('Including...')
-                free_autobid_sum = user.autobid_sum_left or 0
-                print(free_autobid_sum)
-                # Include only users who can make a higher bid
-                if free_autobid_sum > item.price:
-                    result.append({'user_id': user.id,
-                                'user_name': user.name,
-                                'free_autobid_sum': free_autobid_sum
-                                })
-                # Others will get an email alerting about not enough sum
-                else:
-                    email_subject = 'Webauction alert: cannot make an autobid'
-                    email_content = 'You have set AUTOBID option on for an item "'+ item.title + '" but there was not enough sum for the next bid. Your current balance is $' + str(free_autobid_sum) + ' and item''s price is $' + str(item.price) + '. Come to webauction.herokuapp.com for more opportunities!'
-                    email_recipients = [user.email]
-                    utils.celery_send_email_task(email_subject, email_content, email_recipients)
+            free_autobid_sum = user.autobid_sum_left or 0
+            print(free_autobid_sum)
+            # Include only users who can make a higher bid
+            if free_autobid_sum > item.price:
+                result.append({'user_id': user.id,
+                            'user_name': user.name,
+                            'free_autobid_sum': free_autobid_sum,
+                            'current_winner': user == current_winner
+                            })
+            # Others will get an email alerting about not enough sum
+            else:
+                email_subject = 'Webauction alert: cannot make an autobid'
+                email_content = 'You have set AUTOBID option on for an item "'+ item.title + '" but there was not enough sum for the next bid. Your current balance is $' + str(free_autobid_sum) + ' and item''s price is $' + str(item.price) + '. Come to webauction.herokuapp.com for more opportunities!'
+                email_recipients = [user.email]
+                # utils.celery_send_email_task(email_subject, email_content, email_recipients)
 
-        return sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
+        # Users who can make a bid sorted by free autobid sum
+        result = sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)
+        return result
 
     def delete(self, data: dict):
         """
@@ -553,25 +552,40 @@ def check_autobidding_for_item(item_id: int, price: int) -> bool:
     """
     users_for_bidding = AuctionAutoBid().get_autobid_users_list(item_id)
 
+    new_price = price + 1
+    set_max_price = False
+    # If there are no possible bidders, quit
     if len(users_for_bidding) == 0:
         print('no users')
         return False
+    elif users_for_bidding[0].get('current_winner'):
+        # If current winner is the only possible bidder, quit
+        if len(users_for_bidding) == 1:
+            print('only winner can bid')
+            return False
+        # If current winner has max free sutobid sum, next bidder must bid maximum possible sum
+        else:
+            set_max_price = True
+            winner = users_for_bidding[1]
+            winner_sum = winner.get('free_autobid_sum')
+    # If someone else has maximum autobid sum, regard him as a next winner
     else:
         print(users_for_bidding)
         winner = users_for_bidding[0]
         winner_sum = winner.get('free_autobid_sum')
 
-    new_price = price + 1
-    # Calculate new price: overbid the second winner by 1
-    for bid_user in users_for_bidding[1:]:
-        print('new price: ')
-        pre_max_sum = bid_user.get('free_autobid_sum')
-        print(pre_max_sum)
-        if pre_max_sum < winner_sum:
-            new_price = pre_max_sum + 1
-            print(new_price)
-            break
-
+    if set_max_price:
+        new_price = winner_sum
+    else:
+        # Calculate new price: overbid the second winner by 1
+        for bid_user in users_for_bidding:
+            print('new price: ')
+            pre_max_sum = bid_user.get('free_autobid_sum')
+            print(pre_max_sum)
+            if pre_max_sum < winner_sum:
+                new_price = pre_max_sum + 1
+                print(new_price)
+                break
 
     item = AuctionItem(item_id)
     data = {'user_name': winner.get('user_name'), 'price': new_price, 'auto': True}
