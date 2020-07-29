@@ -1,7 +1,5 @@
-# Live demo
-http://webauction.herokuapp.com/
+# Credentials
 
-### Credentials
    `admin/admin` - Administrator
    `user/user` - Regular user
    `user2/user2` - Regular user
