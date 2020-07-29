@@ -20,3 +20,6 @@ def celery_send_ws_task(p):
 
 def celery_send_email_task(subject: str, content: str, recipients: [str]):
     current_app.send_task('auction.tasks.task_send_email', args=[subject, content, recipients])
+
+def celery_send_autobid_task():
+    current_app.send_task('auction.tasks.task_autobid', args=[])

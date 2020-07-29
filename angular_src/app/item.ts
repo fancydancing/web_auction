@@ -22,6 +22,7 @@ export interface AucItem {
 
     // Item auction is closed
     expired?: boolean;
+
 }
 
 export interface AucUserItem {
@@ -40,6 +41,7 @@ export interface UserInfo {
     email?: string;
     autobid_total_sum?: number;
     autobid_alert_perc?: number;
+    autobid_sum_left?: number;
 }
 
 export interface AucItems {

@@ -390,6 +390,8 @@ class AuctionAutoBid():
 
         data_add = {'user': user, 'item': item}
         new_autobid = AutoBid.objects.create(**data_add)
+        # Start a task for autobidding
+        utils.celery_send_autobid_task()
 
         return {'result': True, 'auto_bid_state': True}
 
@@ -431,7 +433,7 @@ class AuctionAutoBid():
                 email_subject = 'Webauction alert: cannot make an autobid'
                 email_content = 'You have set AUTOBID option on for an item "'+ item.title + '" but there was not enough sum for the next bid. Your current balance is $' + str(free_autobid_sum) + ' and item''s price is $' + str(item.price) + '. Come to webauction.herokuapp.com for more opportunities!'
                 email_recipients = [user.email]
-                # utils.celery_send_email_task(email_subject, email_content, email_recipients)
+                utils.celery_send_email_task(email_subject, email_content, email_recipients)
 
         # Users who can make a bid sorted by free autobid sum
         result = sorted(result, key=lambda k: k['free_autobid_sum'], reverse=True)

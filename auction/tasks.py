@@ -33,15 +33,9 @@ def task_send_notification(data):
         AuctionItem(data.get('item_id')).notify_winner(data.get('user_id'))
 
 @shared_task
-def task_autobid_on_item(item_id, price):
+def task_autobid():
     print('CELERY TASK: autobidding')
-    users_emails = check_autobidding(item_id, price)
-
-    # email_subject = 'Autobid was set on an item'
-    # email_content = ''
-    # for email in users_emails:
-
-    # task_send_email.delay(email_subject, email_content, email_recipients)
+    check_autobidding()
 
 @periodic_task(run_every=(timedelta(minutes=1)), name='Check deadlines')
 def task_check_deadlines():

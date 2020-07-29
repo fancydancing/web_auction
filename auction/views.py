@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import get_object_or_404
 
-from .auction import AuctionItem, Authorization, AuctionList, AuctionUserInfo, AuctionAutoBid, check_autobidding
+from .auction import AuctionItem, Authorization, AuctionList, AuctionUserInfo, AuctionAutoBid
 from .models import Item, AuctionUser, AutoBid, Bid
 from .forms import ItemListForm, ItemForm
 from .deploy_db import deploy_data
@@ -258,8 +258,5 @@ def item_info_for_user(request, pk_user: int, pk_item: int) -> dict:
 
 def index_view(request) -> HttpResponse:
     """Show start page with items list."""
-    # check_autobidding(2, 215)
-    # losers_qs = Bid.objects.all().values_list('user', flat=True).distinct()
-    # print(losers_qs)
     deploy_data()
     return render(request, 'items.html')
