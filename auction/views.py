@@ -249,7 +249,13 @@ def user_info_view(request, pk) -> HttpResponse:
         return read_user(pk)
 
 
-def item_info_for_user(request, pk_user: int, pk_item: int) -> dict:
+def item_info_for_user(request, pk_user: int, pk_item: int) -> HttpResponse:
+    """
+    Get autobid setting for an item.
+
+    pk_user: int - user id
+    pk_item: int - item id
+    """
     autobid_on = AutoBid.objects.filter(user__id=pk_user, item__id=pk_item)
     autobid = len(autobid_on) > 0
     res = {'autobid': autobid}
