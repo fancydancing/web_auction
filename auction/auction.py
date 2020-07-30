@@ -398,16 +398,12 @@ class AuctionAutoBid():
     def get_items_list(self):
         autobid_items_ids = AutoBid.objects.filter(item__expired=False).distinct('item').values_list('item', flat=True)
         autobid_items = Item.objects.filter(id__in=autobid_items_ids).order_by('close_dt')
-        # autobid_items = AutoBid.objects.distinct('item').values('item')
-        print(autobid_items)
         return autobid_items
 
     def get_autobid_users_list(self, item_id: int):
         # All users who have set autobid ON for this item
         autobid_users = AutoBid.objects.filter(item__id=item_id).distinct('user').order_by('user__id')
-        print('Have autobid on: ', autobid_users)
         user_ids = autobid_users.values_list('user__id', flat=True)
-        print('IDS: ', user_ids)
         users = AuctionUser.objects.filter(id__in=user_ids)
         item = get_object_or_404(Item, id=item_id)
 
@@ -420,7 +416,6 @@ class AuctionAutoBid():
         result = []
         for user in users:
             free_autobid_sum = user.autobid_sum_left or 0
-            print(free_autobid_sum)
             # Include only users who can make a higher bid
             if free_autobid_sum > item.price:
                 result.append({'user_id': user.id,
@@ -463,7 +458,6 @@ class Authorization():
         # Login/password check
         users = AuctionUser.objects.all()
         allowed_logins = users.values_list('name', flat=True)
-        print(allowed_logins)
         if username not in allowed_logins or password != users.get(name=username).password:
             res = False
             role = None
@@ -501,7 +495,6 @@ def check_deadlines():
 
             losers_ids = bids.exclude(user__in=[winner]).values_list('user', flat=True).distinct()
             losers_qs = AuctionUser.objects.filter(id__in=losers_ids)
-            print(losers_qs)
             for loser in losers_qs:
                 losers.append({'item': item.title,
                                'item_id': item.id,
@@ -536,11 +529,8 @@ def check_autobidding():
 
     result = False
     for item in items:
-        print('Start checking for item ' + item.title)
         item_result = check_autobidding_for_item(item.id, item.price)
         result = result or item_result
-        print('item result = ' + str(item_result))
-        print('result = ' + str(result))
 
     if result:
         check_autobidding()
@@ -558,12 +548,10 @@ def check_autobidding_for_item(item_id: int, price: int) -> bool:
     set_max_price = False
     # If there are no possible bidders, quit
     if len(users_for_bidding) == 0:
-        print('no users')
         return False
     elif users_for_bidding[0].get('current_winner'):
         # If current winner is the only possible bidder, quit
         if len(users_for_bidding) == 1:
-            print('only winner can bid')
             return False
         # If current winner has max free sutobid sum, next bidder must bid maximum possible sum
         else:
@@ -572,7 +560,6 @@ def check_autobidding_for_item(item_id: int, price: int) -> bool:
             winner_sum = winner.get('free_autobid_sum')
     # If someone else has maximum autobid sum, regard him as a next winner
     else:
-        print(users_for_bidding)
         winner = users_for_bidding[0]
         winner_sum = winner.get('free_autobid_sum')
 
@@ -581,17 +568,12 @@ def check_autobidding_for_item(item_id: int, price: int) -> bool:
     else:
         # Calculate new price: overbid the second winner by 1
         for bid_user in users_for_bidding:
-            print('new price: ')
             pre_max_sum = bid_user.get('free_autobid_sum')
-            print(pre_max_sum)
             if pre_max_sum < winner_sum:
                 new_price = pre_max_sum + 1
-                print(new_price)
                 break
 
     item = AuctionItem(item_id)
     data = {'user_name': winner.get('user_name'), 'price': new_price, 'auto': True}
-    print(data)
     item.set_bid(data)
-    print('bid made')
     return True
